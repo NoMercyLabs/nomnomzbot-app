@@ -42,7 +42,7 @@ export interface PipelineGraph {
 }
 
 export interface Pipeline {
-  id: string
+  id: number
   channelId: string
   name: string
   description?: string
@@ -52,6 +52,25 @@ export interface Pipeline {
   lastTriggeredAt?: string
   createdAt: string
   updatedAt: string
+}
+
+export interface PipelineListItem {
+  id: number
+  name: string
+  description?: string
+  isEnabled: boolean
+  triggerCount: number
+  lastTriggeredAt?: string
+  updatedAt: string
+}
+
+export interface PipelineStep {
+  action: string
+  params: Record<string, unknown>
+  condition?: {
+    type: string
+    [key: string]: unknown
+  }
 }
 
 export interface PipelineTestResult {

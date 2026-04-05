@@ -44,7 +44,7 @@ export function PipelinesScreen() {
         <DataTable
           columns={columns}
           data={data ?? []}
-          keyExtractor={(p) => p.id}
+          keyExtractor={(p) => String(p.id)}
           isLoading={isLoading}
           onRowPress={(p) => router.push(`/(dashboard)/pipelines/${p.id}` as any)}
           emptyMessage={t('empty.title')}

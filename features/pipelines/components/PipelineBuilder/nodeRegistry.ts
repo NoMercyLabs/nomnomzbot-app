@@ -1,138 +1,306 @@
-import type { NodeCategory } from '@/types/pipeline'
+import type { NodeCategory, ConfigField } from '@/types/pipeline'
 
-interface NodeDefinition {
-  type: string
+export interface NodeDefinition {
+  nodeType: string
   label: string
   category: NodeCategory
   description: string
   defaultConfig: Record<string, unknown>
-  configSchema: Record<string, unknown>
+  configSchema: ConfigField[]
 }
 
 export const NODE_REGISTRY: NodeDefinition[] = [
   // Triggers
   {
-    type: 'trigger.chat_message',
+    nodeType: 'chat.message',
     label: 'Chat Message',
     category: 'trigger',
     description: 'Fires when a chat message is received',
-    defaultConfig: { pattern: '' },
-    configSchema: { pattern: { type: 'string', label: 'Message Pattern (regex)' } },
+    defaultConfig: {},
+    configSchema: [],
   },
   {
-    type: 'trigger.channel_point',
-    label: 'Channel Point Redemption',
-    category: 'trigger',
-    description: 'Fires when a viewer redeems a channel point reward',
-    defaultConfig: { rewardId: '' },
-    configSchema: { rewardId: { type: 'string', label: 'Reward ID', required: true } },
-  },
-  {
-    type: 'trigger.follow',
+    nodeType: 'channel.follow',
     label: 'New Follow',
     category: 'trigger',
     description: 'Fires when someone follows the channel',
     defaultConfig: {},
-    configSchema: {},
+    configSchema: [],
   },
   {
-    type: 'trigger.subscription',
+    nodeType: 'channel.subscription',
     label: 'Subscription',
     category: 'trigger',
     description: 'Fires when someone subscribes or resubscribes',
-    defaultConfig: { includeResub: true, includeGift: true },
-    configSchema: {
-      includeResub: { type: 'boolean', label: 'Include Resubs' },
-      includeGift: { type: 'boolean', label: 'Include Gift Subs' },
-    },
+    defaultConfig: {},
+    configSchema: [],
   },
   {
-    type: 'trigger.raid',
+    nodeType: 'channel.cheer',
+    label: 'Cheer (Bits)',
+    category: 'trigger',
+    description: 'Fires when someone cheers with bits',
+    defaultConfig: {},
+    configSchema: [],
+  },
+  {
+    nodeType: 'channel.raid',
     label: 'Raid',
     category: 'trigger',
     description: 'Fires when the channel is raided',
-    defaultConfig: { minViewers: 0 },
-    configSchema: { minViewers: { type: 'number', label: 'Minimum Viewers' } },
+    defaultConfig: {},
+    configSchema: [],
   },
   {
-    type: 'trigger.bits',
-    label: 'Bits',
+    nodeType: 'channel.channel_points_custom_reward_redemption.add',
+    label: 'Channel Point Redemption',
     category: 'trigger',
-    description: 'Fires when someone cheers with bits',
-    defaultConfig: { minBits: 1 },
-    configSchema: { minBits: { type: 'number', label: 'Minimum Bits' } },
+    description: 'Fires when a viewer redeems a channel point reward',
+    defaultConfig: {},
+    configSchema: [],
   },
 
   // Conditions
   {
-    type: 'condition.user_level',
-    label: 'User Level Check',
+    nodeType: 'user_role',
+    label: 'User Role Check',
     category: 'condition',
-    description: 'Checks if the user meets a minimum permission level',
-    defaultConfig: { level: 'everyone' },
-    configSchema: { level: { type: 'select', label: 'Minimum Level', required: true } },
+    description: 'Only proceed if the user meets the minimum role requirement',
+    defaultConfig: { min_role: 'viewer' },
+    configSchema: [
+      {
+        key: 'min_role',
+        label: 'Minimum Role',
+        type: 'select',
+        options: [
+          { label: 'Viewer', value: 'viewer' },
+          { label: 'Subscriber', value: 'subscriber' },
+          { label: 'VIP', value: 'vip' },
+          { label: 'Moderator', value: 'moderator' },
+          { label: 'Broadcaster', value: 'broadcaster' },
+        ],
+        required: true,
+      },
+    ],
   },
   {
-    type: 'condition.cooldown',
-    label: 'Cooldown',
+    nodeType: 'random',
+    label: 'Random Chance',
     category: 'condition',
-    description: 'Only proceeds if the cooldown has elapsed',
-    defaultConfig: { seconds: 30 },
-    configSchema: { seconds: { type: 'number', label: 'Cooldown (seconds)', required: true } },
+    description: 'Proceed with a random percentage chance',
+    defaultConfig: { percent: 50 },
+    configSchema: [
+      {
+        key: 'percent',
+        label: 'Chance (%)',
+        type: 'number',
+        placeholder: '50',
+        required: true,
+      },
+    ],
+  },
+  {
+    nodeType: 'variable_equals',
+    label: 'Variable Check',
+    category: 'condition',
+    description: 'Compare a pipeline variable against a value',
+    defaultConfig: { variable: '', value: '', operator: 'equals' },
+    configSchema: [
+      {
+        key: 'variable',
+        label: 'Variable Name',
+        type: 'text',
+        placeholder: 'counter',
+        required: true,
+      },
+      {
+        key: 'operator',
+        label: 'Operator',
+        type: 'select',
+        options: [
+          { label: 'Equals', value: 'equals' },
+          { label: 'Not Equals', value: 'not_equals' },
+          { label: 'Contains', value: 'contains' },
+          { label: 'Starts With', value: 'starts_with' },
+          { label: 'Is Empty', value: 'is_empty' },
+          { label: 'Is Not Empty', value: 'is_not_empty' },
+        ],
+      },
+      {
+        key: 'value',
+        label: 'Value',
+        type: 'text',
+        placeholder: '0',
+      },
+    ],
   },
 
   // Actions
   {
-    type: 'action.chat_message',
-    label: 'Send Chat Message',
+    nodeType: 'send_message',
+    label: 'Send Message',
     category: 'action',
-    description: 'Sends a message in chat',
+    description: 'Sends a message in chat. Supports {variable} template syntax.',
     defaultConfig: { message: '' },
-    configSchema: { message: { type: 'textarea', label: 'Message', required: true } },
+    configSchema: [
+      {
+        key: 'message',
+        label: 'Message',
+        type: 'variable',
+        placeholder: 'e.g. Welcome {user} to the stream!',
+        required: true,
+      },
+    ],
   },
   {
-    type: 'action.timeout',
+    nodeType: 'send_reply',
+    label: 'Send Reply',
+    category: 'action',
+    description: 'Replies to the triggering message in chat',
+    defaultConfig: { message: '' },
+    configSchema: [
+      {
+        key: 'message',
+        label: 'Message',
+        type: 'variable',
+        placeholder: 'e.g. Good point, {user}!',
+        required: true,
+      },
+    ],
+  },
+  {
+    nodeType: 'timeout',
     label: 'Timeout User',
     category: 'action',
-    description: 'Times out the triggering user',
+    description: 'Times out the triggering user for a number of seconds',
     defaultConfig: { duration: 60, reason: '' },
-    configSchema: {
-      duration: { type: 'number', label: 'Duration (seconds)', required: true },
-      reason: { type: 'string', label: 'Reason' },
-    },
+    configSchema: [
+      {
+        key: 'duration',
+        label: 'Duration (seconds)',
+        type: 'number',
+        placeholder: '60',
+        required: true,
+      },
+      {
+        key: 'reason',
+        label: 'Reason',
+        type: 'text',
+        placeholder: 'Auto-moderation',
+      },
+    ],
   },
   {
-    type: 'action.add_points',
-    label: 'Add Channel Points',
+    nodeType: 'ban',
+    label: 'Ban User',
     category: 'action',
-    description: 'Adds channel points to a user',
-    defaultConfig: { amount: 100 },
-    configSchema: { amount: { type: 'number', label: 'Points Amount', required: true } },
+    description: 'Bans the triggering user from the channel',
+    defaultConfig: { reason: '' },
+    configSchema: [
+      {
+        key: 'reason',
+        label: 'Reason',
+        type: 'text',
+        placeholder: 'Violation of rules',
+      },
+    ],
   },
   {
-    type: 'action.play_music',
-    label: 'Play Song Request',
+    nodeType: 'wait',
+    label: 'Wait',
+    category: 'action',
+    description: 'Pauses pipeline execution for a number of seconds (max 30)',
+    defaultConfig: { seconds: 5 },
+    configSchema: [
+      {
+        key: 'seconds',
+        label: 'Seconds (max 30)',
+        type: 'number',
+        placeholder: '5',
+        required: true,
+      },
+    ],
+  },
+  {
+    nodeType: 'set_variable',
+    label: 'Set Variable',
+    category: 'action',
+    description: 'Sets a pipeline variable to a value',
+    defaultConfig: { name: '', value: '' },
+    configSchema: [
+      {
+        key: 'name',
+        label: 'Variable Name',
+        type: 'text',
+        placeholder: 'counter',
+        required: true,
+      },
+      {
+        key: 'value',
+        label: 'Value',
+        type: 'text',
+        placeholder: '0',
+        required: true,
+      },
+    ],
+  },
+  {
+    nodeType: 'stop',
+    label: 'Stop',
+    category: 'action',
+    description: 'Stops pipeline execution immediately',
+    defaultConfig: {},
+    configSchema: [],
+  },
+  {
+    nodeType: 'delete_message',
+    label: 'Delete Message',
+    category: 'action',
+    description: 'Deletes the message that triggered this pipeline',
+    defaultConfig: {},
+    configSchema: [],
+  },
+  {
+    nodeType: 'shoutout',
+    label: 'Shoutout',
+    category: 'action',
+    description: 'Sends a /shoutout command for a user',
+    defaultConfig: { cooldown_minutes: 60 },
+    configSchema: [
+      {
+        key: 'user_id',
+        label: 'User (leave blank for triggering user)',
+        type: 'text',
+        placeholder: '{user.id}',
+      },
+      {
+        key: 'cooldown_minutes',
+        label: 'Cooldown (minutes)',
+        type: 'number',
+        placeholder: '60',
+      },
+    ],
+  },
+  {
+    nodeType: 'song_request',
+    label: 'Song Request',
     category: 'action',
     description: 'Adds a song to the music queue',
     defaultConfig: {},
-    configSchema: {},
+    configSchema: [],
   },
   {
-    type: 'action.http_request',
-    label: 'HTTP Request',
+    nodeType: 'song_skip',
+    label: 'Skip Song',
     category: 'action',
-    description: 'Makes an HTTP request to a URL',
-    defaultConfig: { url: '', method: 'POST', body: '' },
-    configSchema: {
-      url: { type: 'string', label: 'URL', required: true },
-      method: { type: 'select', label: 'Method' },
-      body: { type: 'textarea', label: 'Body (JSON)' },
-    },
+    description: 'Skips the currently playing song',
+    defaultConfig: {},
+    configSchema: [],
   },
 ]
 
-export function getNodeDef(type: string): NodeDefinition | undefined {
-  return NODE_REGISTRY.find((n) => n.type === type)
+export function getNodeDef(nodeType: string): NodeDefinition | undefined {
+  return NODE_REGISTRY.find((n) => n.nodeType === nodeType)
 }
 
 export const NODES_BY_CATEGORY = {

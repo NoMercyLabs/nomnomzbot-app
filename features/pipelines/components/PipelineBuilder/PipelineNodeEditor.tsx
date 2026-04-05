@@ -5,7 +5,7 @@ import { Select } from '@/components/ui/Select'
 import { Toggle } from '@/components/ui/Toggle'
 import { Button } from '@/components/ui/Button'
 import { NODE_REGISTRY } from '../nodes/registry'
-import type { PipelineNode } from '@/types/pipeline'
+import type { PipelineNode, ConfigField } from '@/types/pipeline'
 
 interface PipelineNodeEditorProps {
   node: PipelineNode
@@ -61,18 +61,17 @@ export function PipelineNodeEditor({ node, onUpdate, onDelete, onClose }: Pipeli
         />
 
         {/* Config schema fields */}
-        {def?.configSchema && Object.entries(def.configSchema).map(([key, field]: [string, any]) => {
-          const value = node.config[key]
+        {def?.configSchema?.map((field: ConfigField) => {
+          const value = node.config[field.key]
 
           if (field.type === 'select') {
-            const options = (field.options as string[]).map((o) => ({ label: o, value: o }))
             return (
               <Select
-                key={key}
+                key={field.key}
                 label={field.label}
-                value={String(value ?? field.defaultValue ?? options[0]?.value ?? '')}
-                onValueChange={(v) => updateConfig(key, v)}
-                options={options}
+                value={String(value ?? field.options?.[0]?.value ?? '')}
+                onValueChange={(v) => updateConfig(field.key, v)}
+                options={field.options ?? []}
               />
             )
           }
@@ -80,11 +79,11 @@ export function PipelineNodeEditor({ node, onUpdate, onDelete, onClose }: Pipeli
           if (field.type === 'number') {
             return (
               <Input
-                key={key}
+                key={field.key}
                 label={field.label}
-                placeholder={field.placeholder ?? String(field.defaultValue ?? 0)}
-                value={String(value ?? field.defaultValue ?? '')}
-                onChangeText={(v) => updateConfig(key, parseInt(v, 10) || 0)}
+                placeholder={field.placeholder ?? '0'}
+                value={String(value ?? '')}
+                onChangeText={(v) => updateConfig(field.key, parseInt(v, 10) || 0)}
                 keyboardType="numeric"
               />
             )
@@ -93,28 +92,44 @@ export function PipelineNodeEditor({ node, onUpdate, onDelete, onClose }: Pipeli
           if (field.type === 'toggle') {
             return (
               <Toggle
-                key={key}
+                key={field.key}
                 label={field.label}
                 value={!!value}
-                onValueChange={(v) => updateConfig(key, v)}
+                onValueChange={(v) => updateConfig(field.key, v)}
               />
             )
           }
 
-          // text / variable / default
+          if (field.type === 'variable') {
+            return (
+              <View key={field.key}>
+                <Input
+                  label={field.label}
+                  placeholder={field.placeholder ?? 'e.g. {user} scored {random.number.100}'}
+                  value={String(value ?? '')}
+                  onChangeText={(v) => updateConfig(field.key, v)}
+                />
+                <Text className="text-xs text-gray-500 mt-1">
+                  Variables: {'{user}'}, {'{user.id}'}, {'{channel}'}, {'{stream.title}'}, {'{stream.game}'}, {'{stream.uptime}'}, {'{time}'}, {'{date}'}, {'{random.number.N}'}
+                </Text>
+              </View>
+            )
+          }
+
+          // text / default
           return (
             <Input
-              key={key}
+              key={field.key}
               label={field.label}
               placeholder={field.placeholder ?? ''}
               value={String(value ?? '')}
-              onChangeText={(v) => updateConfig(key, v)}
+              onChangeText={(v) => updateConfig(field.key, v)}
             />
           )
         })}
 
         {/* No config */}
-        {def && !def.configSchema && (
+        {def && def.configSchema.length === 0 && (
           <Text className="text-sm text-gray-500">No configuration needed for this node.</Text>
         )}
 

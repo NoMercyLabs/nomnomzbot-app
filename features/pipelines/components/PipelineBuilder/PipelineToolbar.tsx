@@ -34,23 +34,16 @@ function NodePickerModal({
   onClose: () => void
   onSelect: (node: PipelineNode) => void
 }) {
-  const nodes = NODE_REGISTRY.filter((n) => !category || n.type === category)
+  const nodes = NODE_REGISTRY.filter((n) => !category || n.category === category)
   const categories: NodeCategory[] = category ? [category] : ['trigger', 'condition', 'action']
 
   function select(nodeType: string) {
     const def = NODE_REGISTRY.find((n) => n.nodeType === nodeType)
     if (!def) return
-    const defaultConfig: Record<string, unknown> = {}
-    if (def.configSchema) {
-      Object.entries(def.configSchema).forEach(([key, field]: [string, any]) => {
-        if (field.defaultValue !== undefined) defaultConfig[key] = field.defaultValue
-        else if (field.type === 'number') defaultConfig[key] = 0
-        else defaultConfig[key] = ''
-      })
-    }
+    const defaultConfig: Record<string, unknown> = { ...def.defaultConfig }
     onSelect({
       id: crypto.randomUUID(),
-      type: def.type,
+      type: def.category,
       nodeType: def.nodeType,
       label: def.label,
       config: defaultConfig,
@@ -76,7 +69,7 @@ function NodePickerModal({
           </View>
           <ScrollView style={{ maxHeight: 480 }}>
             {categories.map((cat) => {
-              const catNodes = nodes.filter((n) => n.type === cat)
+              const catNodes = nodes.filter((n) => n.category === cat)
               if (catNodes.length === 0) return null
               const styles = CATEGORY_STYLES[cat]
               return (
@@ -96,7 +89,7 @@ function NodePickerModal({
                     >
                       <View className={`rounded px-1.5 py-0.5 ${styles.badge}`}>
                         <Text className={`text-xs font-medium ${styles.text}`}>
-                          {node.type}
+                          {node.category}
                         </Text>
                       </View>
                       <View className="flex-1 gap-0.5">

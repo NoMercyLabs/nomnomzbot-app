@@ -8,5 +8,5 @@ export interface PipelineBuilderState {
 
 export interface PipelineBuilderProps {
   pipeline?: import('@/types/pipeline').Pipeline
-  onSave?: (pipeline: import('@/types/pipeline').Pipeline) => void
+  onSave?: (pipeline: import('@/types/pipeline').Pipeline) => void | Promise<void>
 }

@@ -135,7 +135,7 @@ export default function CommandEditScreen() {
               /* ── Form ── */
               <CommandForm
                 command={isNew ? undefined : command}
-                pipelines={pipelines.map((p) => ({ id: p.id, name: p.name }))}
+                pipelines={pipelines.map((p) => ({ id: String(p.id), name: p.name }))}
                 onSubmit={handleSubmit}
                 isSubmitting={isSubmitting}
               />

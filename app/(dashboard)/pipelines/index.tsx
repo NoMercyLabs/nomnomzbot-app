@@ -1,16 +1,17 @@
 import { ScrollView, View, Text, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 import { PageHeader } from '@/components/layout/PageHeader'
-import { useApiQuery, useApiMutation } from '@/hooks/useApi'
+import { usePaginatedQuery } from '@/hooks/useApi'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { Plus, Edit } from 'lucide-react-native'
-import type { Pipeline } from '@/types/pipeline'
+import { Plus } from 'lucide-react-native'
+import type { PipelineListItem } from '@/types/pipeline'
 
 export default function PipelinesScreen() {
   const router = useRouter()
-  const { data: pipelines, isLoading } = useApiQuery<Pipeline[]>('pipelines', '/pipelines')
+  const { data: response, isLoading } = usePaginatedQuery<PipelineListItem>('pipelines', '/pipelines', 1, 25)
+  const pipelines = response?.data
 
   return (
     <ScrollView className="flex-1 bg-surface">
@@ -30,14 +31,19 @@ export default function PipelinesScreen() {
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)
           : pipelines?.map((p) => (
-              <Pressable key={p.id} onPress={() => router.push(`/(dashboard)/pipelines/${p.id}` as any)}>
+              <Pressable
+                key={p.id}
+                onPress={() => router.push(`/(dashboard)/pipelines/${String(p.id)}` as any)}
+              >
                 <Card className="p-4 gap-2">
                   <View className="flex-row items-center justify-between">
                     <Text className="text-gray-100 font-medium">{p.name}</Text>
                     <Badge label={p.isEnabled ? 'Active' : 'Disabled'} variant={p.isEnabled ? 'success' : 'secondary'} />
                   </View>
                   {p.description && <Text className="text-gray-400 text-sm">{p.description}</Text>}
-                  <Text className="text-gray-500 text-xs">{p.graph.nodes.length} nodes</Text>
+                  <Text className="text-gray-500 text-xs">
+                    {p.triggerCount} trigger{p.triggerCount !== 1 ? 's' : ''}
+                  </Text>
                 </Card>
               </Pressable>
             ))}
