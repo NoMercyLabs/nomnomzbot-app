@@ -75,7 +75,11 @@ export function useApiMutation<TData, TVariables>(
   return useMutation<TData, ApiError, TVariables>({
     mutationFn: async (variables) => {
       const url = `/v1/channels/${channelId}${path}`
-      const res = await (apiClient[method] as (url: string, data?: unknown) => Promise<{ data: ApiResponse<TData> }>)(url, variables)
+      const res = await (
+        method === 'delete'
+          ? (apiClient.delete as (url: string) => Promise<{ data: ApiResponse<TData> }>)(url)
+          : (apiClient[method] as (url: string, data?: unknown) => Promise<{ data: ApiResponse<TData> }>)(url, variables)
+      )
       return res.data.data
     },
     onSuccess: (data) => {

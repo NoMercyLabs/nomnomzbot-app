@@ -12,28 +12,41 @@ import type { Command, CommandCreate, CommandUpdate, PermissionLevel } from '../
 
 // ─── Zod Schema ─────────────────────────────────────────────────────────────
 
-const schema = z.object({
-  name: z
-    .string()
-    .min(1)
-    .max(50)
-    .regex(/^[a-z0-9_-]+$/, 'Lowercase letters, numbers, hyphens only'),
-  enabled: z.boolean().default(true),
-  permission: z
-    .enum(['everyone', 'subscriber', 'vip', 'moderator', 'broadcaster'])
-    .default('everyone'),
-  description: z.string().max(200).optional(),
-  cooldown: z.number().min(0).max(3600).default(5),
-  cooldownPerUser: z.boolean().default(false),
-  aliases: z.array(z.object({ value: z.string() })).default([]),
-  // Response mode
-  multipleResponses: z.boolean().default(false),
-  response: z.string().max(500).optional(),
-  responses: z.array(z.object({ value: z.string() })).default([]),
-  // Pipeline mode
-  usePipeline: z.boolean().default(false),
-  pipeline: z.string().optional(),
-})
+const schema = z
+  .object({
+    name: z
+      .string()
+      .min(1)
+      .max(50)
+      .regex(/^[a-z0-9_-]+$/, 'Lowercase letters, numbers, hyphens only'),
+    enabled: z.boolean().default(true),
+    permission: z
+      .enum(['everyone', 'subscriber', 'vip', 'moderator', 'broadcaster'])
+      .default('everyone'),
+    description: z.string().max(200).optional(),
+    cooldown: z.number().min(0).max(3600).default(5),
+    cooldownPerUser: z.boolean().default(false),
+    aliases: z.array(z.object({ value: z.string() })).default([]),
+    // Response mode
+    multipleResponses: z.boolean().default(false),
+    response: z.string().max(500).optional(),
+    responses: z.array(z.object({ value: z.string() })).default([]),
+    // Pipeline mode
+    usePipeline: z.boolean().default(false),
+    pipeline: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.usePipeline && !data.pipeline) {
+      ctx.addIssue({ code: 'custom', path: ['pipeline'], message: 'Select a pipeline' })
+    }
+    if (!data.usePipeline && data.multipleResponses && data.responses.length === 0) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['responses'],
+        message: 'Add at least one response',
+      })
+    }
+  })
 
 type FormData = z.infer<typeof schema>
 
@@ -82,7 +95,7 @@ export function CommandForm({ command, pipelines = [], onSubmit, isSubmitting }:
       cooldown: command?.cooldown ?? command?.cooldownSeconds ?? 5,
       cooldownPerUser: command?.cooldownPerUser ?? false,
       aliases: existingAliases,
-      multipleResponses: (command?.responses?.length ?? 0) > 1,
+      multipleResponses: (command?.responses?.length ?? 0) >= 1,
       response: command?.response ?? '',
       responses: existingResponses,
       usePipeline: !!command?.pipeline,
@@ -236,7 +249,7 @@ export function CommandForm({ command, pipelines = [], onSubmit, isSubmitting }:
         <View className="flex-row items-center justify-between">
           <Text className="text-sm font-medium text-gray-300">Aliases</Text>
           <Pressable
-            onPress={() => aliasesArray.append({ value: '!' })}
+            onPress={() => aliasesArray.append({ value: '' })}
             className="flex-row items-center gap-1 px-2 py-1 rounded-lg bg-surface-raised"
           >
             <Plus size={14} color="rgb(167, 139, 250)" />
@@ -362,7 +375,9 @@ export function CommandForm({ command, pipelines = [], onSubmit, isSubmitting }:
               ))}
 
               {responsesArray.fields.length === 0 && (
-                <Text className="text-xs text-gray-500 italic">No responses. Tap Add Response to create one.</Text>
+                <Text className={`text-xs italic ${errors.responses?.message ? 'text-red-400' : 'text-gray-500'}`}>
+                  {errors.responses?.message ?? 'No responses. Tap Add Response to create one.'}
+                </Text>
               )}
             </View>
           ) : (

@@ -43,9 +43,9 @@ export default function CommandEditScreen() {
     },
   })
 
-  // Update mutation — depends on command?.name once loaded
+  // Update mutation — always use the route param (original name) as the URL key
   const updateMutation = useApiMutation<Command, CommandUpdate>(
-    `/commands/${command?.name ?? name}`,
+    `/commands/${name}`,
     'put',
     {
       invalidateKeys: ['commands', `commands/${name}`],
@@ -101,7 +101,7 @@ export default function CommandEditScreen() {
               <Pressable
                 onPress={() => setDeleteVisible(true)}
                 className="p-2 rounded-lg bg-red-900/30"
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLoading}
               >
                 <Trash2 size={18} color="rgb(252, 165, 165)" />
               </Pressable>
@@ -109,27 +109,8 @@ export default function CommandEditScreen() {
           }
         />
 
-        <View className="px-6 py-4">
-          {isLoading ? (
-            /* ── Skeleton Loading ── */
-            <View className="gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="h-12 rounded-lg" />
-              ))}
-            </View>
-          ) : (
-            /* ── Form ── */
-            <CommandForm
-              command={isNew ? undefined : command}
-              pipelines={pipelines.map((p) => ({ id: p.id, name: p.name }))}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-            />
-          )}
-        </View>
-
-        {/* Error state for failed fetch */}
-        {!isLoading && !isNew && !command && (
+        {/* Error state for failed fetch — shown exclusively, no form */}
+        {!isLoading && !isNew && !command ? (
           <View className="items-center px-6 py-10 gap-3">
             <Text className="text-gray-400 text-center">
               Could not load command. It may not exist.
@@ -140,6 +121,25 @@ export default function CommandEditScreen() {
             >
               <Text className="text-gray-300 font-medium">Back to Commands</Text>
             </Pressable>
+          </View>
+        ) : (
+          <View className="px-6 py-4">
+            {isLoading ? (
+              /* ── Skeleton Loading ── */
+              <View className="gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-12 rounded-lg" />
+                ))}
+              </View>
+            ) : (
+              /* ── Form ── */
+              <CommandForm
+                command={isNew ? undefined : command}
+                pipelines={pipelines.map((p) => ({ id: p.id, name: p.name }))}
+                onSubmit={handleSubmit}
+                isSubmitting={isSubmitting}
+              />
+            )}
           </View>
         )}
       </ScrollView>
