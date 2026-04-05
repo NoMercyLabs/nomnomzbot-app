@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from 'react-native'
+import { View, Text } from 'react-native'
 import { Zap, Settings2 } from 'lucide-react-native'
 import { Card } from '@/components/ui/Card'
 import { Badge, type BadgeVariant } from '@/components/ui/Badge'
@@ -59,15 +59,13 @@ export function EventResponseCard({ eventType, config, onConfigure, onToggle }: 
           label={responseTypeLabel[responseType]}
         />
         <View className="flex-1" />
-        <Pressable onPress={onConfigure}>
-          <Button
-            size="sm"
-            variant="secondary"
-            onPress={onConfigure}
-            leftIcon={<Settings2 size={13} color="rgb(156,163,175)" />}
-            label="Configure"
-          />
-        </Pressable>
+        <Button
+          size="sm"
+          variant="secondary"
+          onPress={onConfigure}
+          leftIcon={<Settings2 size={13} color="rgb(156,163,175)" />}
+          label="Configure"
+        />
       </View>
     </Card>
   )

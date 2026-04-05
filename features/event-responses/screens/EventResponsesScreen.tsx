@@ -9,7 +9,7 @@ import { useChannelStore } from '@/stores/useChannelStore'
 import { useToast } from '@/hooks/useToast'
 import { EventResponseCard } from '../components/EventResponseCard'
 import { EventResponseModal } from '../components/EventResponseModal'
-import { upsertEventResponse } from '../api'
+import { upsertEventResponse, fetchEventResponse } from '../api'
 import { KNOWN_EVENT_TYPES, type EventResponseListItem, type EventResponseConfig, type UpdateEventResponseRequest } from '../types'
 
 export function EventResponsesScreen() {
@@ -31,23 +31,27 @@ export function EventResponsesScreen() {
 
   const enabledCount = (data ?? []).filter((r) => r.isEnabled).length
 
-  function handleConfigure(eventType: string) {
-    const listItem = configByType.get(eventType)
-    const config: EventResponseConfig | null = listItem
-      ? {
-          id: listItem.id,
-          eventType: listItem.eventType,
-          isEnabled: listItem.isEnabled,
-          responseType: listItem.responseType,
-          message: null,
-          pipelineJson: null,
-          metadata: {},
-          createdAt: listItem.updatedAt,
-          updatedAt: listItem.updatedAt,
-        }
-      : null
-    setModalConfig(config)
-    setModalEventType(eventType)
+  async function handleConfigure(eventType: string) {
+    if (!channelId) return
+    try {
+      const fullConfig = await fetchEventResponse(channelId, eventType)
+      setModalConfig(fullConfig)
+      setModalEventType(eventType)
+    } catch {
+      // If not found (404), open with defaults
+      setModalConfig({
+        id: 0,
+        eventType,
+        isEnabled: true,
+        responseType: 'none',
+        message: null,
+        pipelineJson: null,
+        metadata: {},
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+      setModalEventType(eventType)
+    }
   }
 
   async function handleToggle(eventType: string, enabled: boolean) {
