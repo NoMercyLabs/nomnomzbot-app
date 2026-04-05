@@ -1,16 +1,18 @@
-import { View, Text, ScrollView } from 'react-native'
+// Reward detail is handled by app/(dashboard)/rewards/[rewardId].tsx
+// This component is kept for potential future use in modal contexts.
+import { View, Text } from 'react-native'
+import { router } from 'expo-router'
 import { useLocalSearchParams } from 'expo-router'
-import { PageHeader } from '@/components/layout/PageHeader'
-import { Card } from '@/components/ui/Card'
+import { useEffect } from 'react'
 
 export function RewardDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
-  return (
-    <ScrollView className="flex-1 bg-gray-950" contentContainerClassName="p-4 gap-4">
-      <PageHeader title="Reward" showBack />
-      <Card>
-        <Text className="text-sm text-gray-500">Reward {id} details coming soon.</Text>
-      </Card>
-    </ScrollView>
-  )
+
+  useEffect(() => {
+    if (id) {
+      router.replace(`/(dashboard)/rewards/${id}` as any)
+    }
+  }, [id])
+
+  return <View className="flex-1 bg-gray-950" />
 }
