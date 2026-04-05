@@ -1,14 +1,17 @@
-import { Pressable, Text, ActivityIndicator, type PressableProps } from 'react-native'
+import { Pressable, Text, ActivityIndicator, View, type PressableProps } from 'react-native'
 import { cn } from '@/lib/utils/cn'
 
-type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost'
+export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'outline'
 type ButtonSize = 'sm' | 'md' | 'lg'
 
-interface ButtonProps extends PressableProps {
+export interface ButtonProps extends PressableProps {
   variant?: ButtonVariant
   size?: ButtonSize
   loading?: boolean
-  label: string
+  label?: string
+  children?: React.ReactNode
+  leftIcon?: React.ReactNode
+  rightIcon?: React.ReactNode
   className?: string
 }
 
@@ -17,6 +20,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   secondary: 'bg-surface-overlay border border-border active:bg-surface-raised',
   danger: 'bg-red-700 active:bg-red-800',
   ghost: 'active:bg-surface-overlay',
+  outline: 'border border-gray-600 active:bg-surface-overlay',
 }
 
 const textStyles: Record<ButtonVariant, string> = {
@@ -24,6 +28,7 @@ const textStyles: Record<ButtonVariant, string> = {
   secondary: 'text-gray-200',
   danger: 'text-white',
   ghost: 'text-gray-300',
+  outline: 'text-gray-200',
 }
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -43,10 +48,15 @@ export function Button({
   size = 'md',
   loading = false,
   label,
+  children,
+  leftIcon,
+  rightIcon,
   className,
   disabled,
   ...props
 }: ButtonProps) {
+  const displayLabel = label ?? (typeof children === 'string' ? children : undefined)
+
   return (
     <Pressable
       className={cn(
@@ -60,9 +70,14 @@ export function Button({
       {...props}
     >
       {loading && <ActivityIndicator size="small" color="white" />}
-      <Text className={cn('font-semibold', textStyles[variant], textSizeStyles[size])}>
-        {label}
-      </Text>
+      {leftIcon && <View>{leftIcon}</View>}
+      {displayLabel && (
+        <Text className={cn('font-semibold', textStyles[variant], textSizeStyles[size])}>
+          {displayLabel}
+        </Text>
+      )}
+      {!displayLabel && children && typeof children !== 'string' && children}
+      {rightIcon && <View>{rightIcon}</View>}
     </Pressable>
   )
 }

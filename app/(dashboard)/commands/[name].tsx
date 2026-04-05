@@ -4,17 +4,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { useApiQuery, useApiMutation } from '@/hooks/useApi'
 import { CommandForm } from '@/features/commands/components/CommandForm'
-
-interface Command {
-  id: string
-  name: string
-  response: string
-  cooldown: number
-  enabled: boolean
-  permission: string
-  aliases: string[]
-  description?: string
-}
+import type { Command } from '@/features/commands/types'
 
 export default function CommandEditScreen() {
   const { name } = useLocalSearchParams<{ name: string }>()

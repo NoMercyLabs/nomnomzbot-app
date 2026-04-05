@@ -9,12 +9,13 @@ import { Button } from '@/components/ui/Button'
 import { DataTable } from '@/components/compound/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Plus } from 'lucide-react-native'
+import type { Pipeline } from '@/types/pipeline'
 
 export function PipelinesScreen() {
   const { t } = useFeatureTranslation('pipelines')
   const broadcasterId = useChannelStore((s) => s.currentChannel?.broadcasterId)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<Pipeline[]>({
     queryKey: ['pipelines', broadcasterId],
     queryFn: () => apiClient.get(`/api/${broadcasterId}/pipelines`).then((r) => r.data),
     enabled: !!broadcasterId,
@@ -22,8 +23,8 @@ export function PipelinesScreen() {
 
   const columns = [
     { key: 'name', title: 'Name', render: (v: string) => <Text className="text-sm text-white">{v}</Text> },
-    { key: 'trigger', title: 'Trigger', render: (v: string) => <Badge variant="info">{v}</Badge> },
-    { key: 'enabled', title: 'Status', render: (v: boolean) => <Badge variant={v ? 'success' : 'muted'}>{v ? 'Active' : 'Inactive'}</Badge>, width: 90 },
+    { key: 'trigger', title: 'Trigger', render: (v: string) => <Badge variant="info" label={v} /> },
+    { key: 'isEnabled', title: 'Status', render: (v: boolean) => <Badge variant={v ? 'success' : 'muted'} label={v ? 'Active' : 'Inactive'} />, width: 90 },
   ]
 
   return (

@@ -1,4 +1,13 @@
-import type { NodeDefinition } from './types'
+import type { NodeCategory } from '@/types/pipeline'
+
+interface NodeDefinition {
+  type: string
+  label: string
+  category: NodeCategory
+  description: string
+  defaultConfig: Record<string, unknown>
+  configSchema: Record<string, unknown>
+}
 
 export const NODE_REGISTRY: NodeDefinition[] = [
   // Triggers

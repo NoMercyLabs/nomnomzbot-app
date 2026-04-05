@@ -9,7 +9,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   return (
     <View className="flex-row flex-wrap py-0.5 px-2">
       <Text
-        style={{ color: message.color || 'rgb(124, 58, 237)' }}
+        style={{ color: message.colorHex || 'rgb(124, 58, 237)' }}
         className="font-semibold text-sm"
       >
         {message.displayName}

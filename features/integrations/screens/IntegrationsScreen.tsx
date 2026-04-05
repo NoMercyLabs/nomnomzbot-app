@@ -20,9 +20,10 @@ export function IntegrationsScreen() {
             <Text className="text-sm font-medium text-white">{integration.name}</Text>
             <Text className="text-xs text-gray-500">{integration.description}</Text>
           </View>
-          <Badge variant={integration.status === 'connected' ? 'success' : 'muted'}>
-            {integration.status === 'connected' ? 'Connected' : 'Connect'}
-          </Badge>
+          <Badge
+            variant={integration.status === 'connected' ? 'success' : 'muted'}
+            label={integration.status === 'connected' ? 'Connected' : 'Connect'}
+          />
         </Card>
       ))}
     </ScrollView>

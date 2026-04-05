@@ -27,7 +27,7 @@ export function StreamScreen() {
           <Card className="gap-3">
             <View className="flex-row items-center justify-between">
               <Text className="text-base font-semibold text-white">Status</Text>
-              <Badge variant={data?.isLive ? 'danger' : 'muted'} dot>
+              <Badge variant={data?.isLive ? 'danger' : 'muted'}>
                 {data?.isLive ? 'Live' : 'Offline'}
               </Badge>
             </View>

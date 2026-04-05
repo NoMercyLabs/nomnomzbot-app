@@ -65,7 +65,7 @@ export function Sidebar() {
                 isActive ? 'bg-accent-900' : 'active:bg-surface-overlay',
               )}
             >
-              <View style={{ color: isActive ? 'rgb(167,139,250)' : 'rgb(156,163,175)' }}>
+              <View style={{ opacity: 1 }}>
                 {item.icon}
               </View>
               {!sidebarCollapsed && (

@@ -68,7 +68,7 @@ export function CommandDetailScreen() {
         rightContent={
           <Button
             size="sm"
-            isLoading={saveMutation.isPending}
+            loading={saveMutation.isPending}
             onPress={handleSubmit((v) => saveMutation.mutate(v))}
           >
             {t('form.save')}

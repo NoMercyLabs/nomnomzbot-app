@@ -19,6 +19,7 @@ export function PipelineToolbar({ isDirty, onAddNode, onSave }: PipelineToolbarP
       nodeType: def.nodeType,
       label: def.label,
       config: {},
+      position: { x: 0, y: 0 },
     })
   }
 
@@ -31,6 +32,7 @@ export function PipelineToolbar({ isDirty, onAddNode, onSave }: PipelineToolbarP
       nodeType: def.nodeType,
       label: def.label,
       config: {},
+      position: { x: 0, y: 0 },
     })
   }
 

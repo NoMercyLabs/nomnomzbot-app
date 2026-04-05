@@ -20,7 +20,8 @@ const LANGUAGES = [
 ]
 
 export function SettingsScreen() {
-  const { t } = useFeatureTranslation('settings')
+  const { t: tRaw } = useFeatureTranslation('settings')
+  const t = tRaw as (key: string) => string
   const { i18n } = useTranslation()
   const [tab, setTab] = useState('general')
   const logout = useAuthStore((s) => s.logout)

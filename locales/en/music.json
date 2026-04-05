@@ -3,6 +3,9 @@
   "nowPlaying": "Now Playing",
   "queue": "Queue",
   "noTrack": "Nothing playing",
+  "empty": {
+    "queue": "Queue is empty"
+  },
   "actions": {
     "skip": "Skip",
     "pause": "Pause",

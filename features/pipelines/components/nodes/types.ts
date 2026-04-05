@@ -1,8 +1,8 @@
-import type { NodeType } from '@/types/pipeline'
+import type { NodeCategory } from '@/types/pipeline'
 
 export interface NodeDefinition {
   nodeType: string
-  type: NodeType
+  type: NodeCategory
   label: string
   description: string
   configSchema?: Record<string, unknown>

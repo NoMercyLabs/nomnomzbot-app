@@ -43,7 +43,7 @@ export function ChatScreen() {
         className="flex-1"
         contentContainerClassName="px-4 py-2 gap-0.5"
         ListEmptyComponent={
-          <Text className="text-center text-gray-600 py-8">{t('empty')}</Text>
+          <Text className="text-center text-gray-600 py-8">{t('empty') as string}</Text>
         }
         renderItem={({ item }) => (
           <View className="flex-row gap-2 py-1">

@@ -10,11 +10,18 @@ import { DataTable } from '@/components/compound/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Plus } from 'lucide-react-native'
 
+interface Reward {
+  id: string
+  title: string
+  cost: number
+  enabled: boolean
+}
+
 export function RewardsScreen() {
   const { t } = useFeatureTranslation('rewards')
   const broadcasterId = useChannelStore((s) => s.currentChannel?.broadcasterId)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<Reward[]>({
     queryKey: ['rewards', broadcasterId],
     queryFn: () => apiClient.get(`/api/${broadcasterId}/rewards`).then((r) => r.data),
     enabled: !!broadcasterId,
@@ -23,7 +30,7 @@ export function RewardsScreen() {
   const columns = [
     { key: 'title', title: 'Reward', render: (v: string) => <Text className="text-sm text-white">{v}</Text> },
     { key: 'cost', title: 'Cost', render: (v: number) => <Text className="text-sm text-yellow-400">{v.toLocaleString()}</Text>, width: 90 },
-    { key: 'enabled', title: 'Status', render: (v: boolean) => <Badge variant={v ? 'success' : 'muted'}>{v ? 'Enabled' : 'Disabled'}</Badge>, width: 90 },
+    { key: 'enabled', title: 'Status', render: (v: boolean) => <Badge variant={v ? 'success' : 'muted'} label={v ? 'Enabled' : 'Disabled'} />, width: 90 },
   ]
 
   return (

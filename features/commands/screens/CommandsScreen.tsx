@@ -11,12 +11,13 @@ import { Badge } from '@/components/ui/Badge'
 import { Plus, Terminal } from 'lucide-react-native'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Text } from 'react-native'
+import type { Command } from '../types'
 
 export function CommandsScreen() {
   const { t } = useFeatureTranslation('commands')
   const broadcasterId = useChannelStore((s) => s.currentChannel?.broadcasterId)
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<Command[]>({
     queryKey: ['commands', broadcasterId],
     queryFn: () => apiClient.get(`/api/${broadcasterId}/commands`).then((r) => r.data),
     enabled: !!broadcasterId,
@@ -36,13 +37,13 @@ export function CommandsScreen() {
     {
       key: 'permission',
       title: 'Permission',
-      render: (val: string) => <Badge variant="muted">{val}</Badge>,
+      render: (val: string) => <Badge variant="muted" label={val} />,
       width: 120,
     },
     {
       key: 'enabled',
       title: 'Status',
-      render: (val: boolean) => <Badge variant={val ? 'success' : 'muted'}>{val ? 'Enabled' : 'Disabled'}</Badge>,
+      render: (val: boolean) => <Badge variant={val ? 'success' : 'muted'} label={val ? 'Enabled' : 'Disabled'} />,
       width: 90,
     },
   ]

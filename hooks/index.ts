@@ -1,4 +1,4 @@
-export { useApi, useApiQuery, usePaginatedQuery, useApiMutation, useChannelQueryKey } from './useApi'
+export { useApiQuery, usePaginatedQuery, useApiMutation, useChannelQueryKey } from './useApi'
 export { useSignalR } from './useSignalR'
 export { useRealtimeChannel } from './useRealtimeChannel'
 export { useAuth, AuthContext } from './useAuth'

@@ -1,9 +1,21 @@
 {
   "title": "Settings",
+  "tabs": {
+    "general": "General",
+    "appearance": "Appearance",
+    "notifications": "Notifications",
+    "account": "Account"
+  },
   "general": {
     "title": "General",
     "prefix": "Command Prefix",
     "language": "Language"
+  },
+  "appearance": {
+    "theme": "Dark Theme"
+  },
+  "account": {
+    "logout": "Log Out"
   },
   "features": {
     "title": "Feature Toggles",

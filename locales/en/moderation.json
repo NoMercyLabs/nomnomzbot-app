@@ -1,5 +1,10 @@
 {
   "title": "Moderation",
+  "tabs": {
+    "automod": "AutoMod",
+    "banned": "Banned Users",
+    "log": "Mod Log"
+  },
   "filters": "Filters",
   "bans": "Bans",
   "log": "Mod Log",

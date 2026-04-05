@@ -42,10 +42,8 @@ export function PipelineDetailScreen() {
         />
       </View>
       <PipelineBuilder
-        graph={data?.graph ?? { nodes: [], connections: [] }}
-        onSave={(graph) => saveMutation.mutate(graph)}
-        readOnly={!isNew && !data}
-        isLoading={isLoading}
+        pipeline={data}
+        onSave={(pipeline) => saveMutation.mutate(pipeline.graph)}
       />
     </View>
   )

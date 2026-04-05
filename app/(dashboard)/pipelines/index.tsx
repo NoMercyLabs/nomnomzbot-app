@@ -34,7 +34,7 @@ export default function PipelinesScreen() {
                 <Card className="p-4 gap-2">
                   <View className="flex-row items-center justify-between">
                     <Text className="text-gray-100 font-medium">{p.name}</Text>
-                    <Badge label={p.enabled ? 'Active' : 'Disabled'} variant={p.enabled ? 'success' : 'secondary'} />
+                    <Badge label={p.isEnabled ? 'Active' : 'Disabled'} variant={p.isEnabled ? 'success' : 'secondary'} />
                   </View>
                   {p.description && <Text className="text-gray-400 text-sm">{p.description}</Text>}
                   <Text className="text-gray-500 text-xs">{p.graph.nodes.length} nodes</Text>

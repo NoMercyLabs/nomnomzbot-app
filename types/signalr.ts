@@ -143,6 +143,9 @@ export interface SignalREventMap {
   NowPlayingChanged: { channelId: string; track: MusicTrack | null }
   QueueUpdated: { channelId: string; queueLength: number }
   PipelineExecuted: { pipelineId: string; channelId: string; status: 'success' | 'error'; duration: number }
+  MessageDeleted: { channelId: string; messageId: string; deletedBy?: string }
+  UserBanned: { channelId: string; userId: string; username: string; reason?: string }
+  UserTimedOut: { channelId: string; userId: string; username: string; durationSeconds: number; reason?: string }
 }
 
 export interface SignalRHubMethods {
@@ -151,3 +154,6 @@ export interface SignalRHubMethods {
   SendChatMessage: (broadcasterId: string, message: string, replyToMessageId?: string) => Promise<void>
   TriggerAction: (broadcasterId: string, actionName: string, parameters?: Record<string, string>) => Promise<void>
 }
+
+// Additional events added after initial spec
+declare module './signalr' {}

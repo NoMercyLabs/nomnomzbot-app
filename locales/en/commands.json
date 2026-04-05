@@ -9,6 +9,7 @@
     "name": "Command Name",
     "namePlaceholder": "e.g., !hello",
     "response": "Response",
+    "responsePlaceholder": "e.g., Hello $(user)!",
     "cooldown": "Cooldown (seconds)",
     "userCooldown": "Per-User Cooldown (seconds)",
     "permission": "Permission Level",

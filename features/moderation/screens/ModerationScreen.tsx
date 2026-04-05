@@ -6,7 +6,8 @@ import { Tabs } from '@/components/ui/Tabs'
 import { Card } from '@/components/ui/Card'
 
 export function ModerationScreen() {
-  const { t } = useFeatureTranslation('moderation')
+  const { t: tRaw } = useFeatureTranslation('moderation')
+  const t = tRaw as (key: string) => string
   const [tab, setTab] = useState('automod')
 
   const tabs = [

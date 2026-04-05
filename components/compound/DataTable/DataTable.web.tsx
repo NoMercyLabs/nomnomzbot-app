@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView } from 'react-native'
+import { View, Text, Pressable, ScrollView, type ViewStyle } from 'react-native'
 import { cn } from '@/lib/utils/cn'
 import { Skeleton } from '@/components/ui/Skeleton'
 import type { DataTableProps } from './types'
@@ -26,7 +26,11 @@ export function DataTable<T>({
         {/* Header */}
         <View className="flex-row border-b border-gray-800 bg-gray-900/50">
           {columns.map((col) => (
-            <View key={col.key} className="px-4 py-3" style={col.width ? { width: col.width } : { flex: 1 }}>
+            <View
+              key={col.key}
+              className="px-4 py-3"
+              style={col.width != null ? ({ width: col.width } as ViewStyle) : { flex: 1 }}
+            >
               <Text className="text-xs font-semibold uppercase tracking-wide text-gray-500">{col.title}</Text>
             </View>
           ))}
@@ -47,7 +51,11 @@ export function DataTable<T>({
               {columns.map((col) => {
                 const value = (row as any)[col.key]
                 return (
-                  <View key={col.key} className="px-4 py-3.5" style={col.width ? { width: col.width } : { flex: 1 }}>
+                  <View
+                    key={col.key}
+                    className="px-4 py-3.5"
+                    style={col.width != null ? ({ width: col.width } as ViewStyle) : { flex: 1 }}
+                  >
                     {col.render ? (
                       col.render(value, row)
                     ) : (

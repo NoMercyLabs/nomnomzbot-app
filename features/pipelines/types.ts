@@ -1,4 +1,4 @@
-export type { Pipeline, PipelineNode, PipelineGraph, NodeType, PipelineNodeConfig } from '@/types/pipeline'
+export type { Pipeline, PipelineNode, PipelineGraph, NodeType } from '@/types/pipeline'
 
 export interface PipelineTestResult {
   success: boolean

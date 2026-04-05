@@ -1,19 +1,23 @@
 import { View, Text, Pressable, ScrollView } from 'react-native'
 import { cn } from '@/lib/utils/cn'
 
-interface Tab {
+export interface Tab {
   key: string
   label: string
 }
 
 interface TabsProps {
   tabs: Tab[]
-  activeKey: string
-  onChange: (key: string) => void
+  activeKey?: string
+  activeTab?: string
+  onChange?: (key: string) => void
+  onTabChange?: (key: string) => void
   className?: string
 }
 
-export function Tabs({ tabs, activeKey, onChange, className }: TabsProps) {
+export function Tabs({ tabs, activeKey, activeTab, onChange, onTabChange, className }: TabsProps) {
+  const currentKey = activeKey ?? activeTab ?? ''
+  const handleChange = onChange ?? onTabChange ?? (() => {})
   return (
     <ScrollView
       horizontal
@@ -24,16 +28,16 @@ export function Tabs({ tabs, activeKey, onChange, className }: TabsProps) {
         {tabs.map((tab) => (
           <Pressable
             key={tab.key}
-            onPress={() => onChange(tab.key)}
+            onPress={() => handleChange(tab.key)}
             className={cn(
               'px-4 py-3 border-b-2',
-              activeKey === tab.key ? 'border-accent-500' : 'border-transparent',
+              currentKey === tab.key ? 'border-accent-500' : 'border-transparent',
             )}
           >
             <Text
               className={cn(
                 'text-sm font-medium',
-                activeKey === tab.key ? 'text-accent-400' : 'text-gray-400',
+                currentKey === tab.key ? 'text-accent-400' : 'text-gray-400',
               )}
             >
               {tab.label}

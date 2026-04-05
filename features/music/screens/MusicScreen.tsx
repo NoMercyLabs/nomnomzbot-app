@@ -10,7 +10,8 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { Play, Pause, SkipForward, SkipBack, Volume2, Shuffle, Repeat } from 'lucide-react-native'
 
 export function MusicScreen() {
-  const { t } = useFeatureTranslation('music')
+  const { t: tRaw } = useFeatureTranslation('music')
+  const t = tRaw as (key: string) => string
   const broadcasterId = useChannelStore((s) => s.currentChannel?.broadcasterId)
   const qc = useQueryClient()
 

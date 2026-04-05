@@ -1,12 +1,20 @@
 export interface ChatMessage {
   id: string
-  userId: string
-  displayName: string
-  message: string
-  badges: string[]
-  color: string
-  timestamp: string
   channelId: string
+  userId: string
+  username: string
+  displayName: string
+  userType: 'viewer' | 'subscriber' | 'vip' | 'moderator' | 'broadcaster'
+  /** Hex color from Twitch (e.g. "#FF0000") */
+  colorHex: string
+  message: string
+  badges: Array<{ setId: string; id: string; info?: string }>
+  fragments: Array<{ type: string; text: string; emote?: { id: string; format: string; setId: string } }>
+  isCommand: boolean
+  isCheer: boolean
+  bitsAmount?: number
+  replyToMessageId?: string
+  timestamp: string
 }
 
 export interface ChatSettings {

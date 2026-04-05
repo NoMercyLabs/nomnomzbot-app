@@ -3,7 +3,6 @@ import { useSignalR } from '@/hooks/useSignalR'
 import { useChannelStore } from '@/stores/useChannelStore'
 import { MAX_CHAT_MESSAGES } from '@/lib/utils/constants'
 import type { ChatMessage } from '../types'
-import type { SignalREventMap } from '@/types/signalr'
 
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -13,10 +12,11 @@ export function useChat() {
   useEffect(() => {
     if (status !== 'connected') return
 
-    on('ChatMessage', (data: SignalREventMap['ChatMessage']) => {
+    on('ChatMessage', (data) => {
       if (data.channelId !== channelId) return
+      const msg: ChatMessage = { id: crypto.randomUUID(), ...data }
       setMessages((prev) => {
-        const next = [...prev, { id: crypto.randomUUID(), ...data }]
+        const next = [...prev, msg]
         return next.length > MAX_CHAT_MESSAGES ? next.slice(-MAX_CHAT_MESSAGES) : next
       })
     })

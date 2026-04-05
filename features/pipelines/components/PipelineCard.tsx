@@ -19,8 +19,8 @@ export function PipelineCard({ pipeline, onPress }: PipelineCardProps) {
             <Text className="text-gray-100 font-semibold">{pipeline.name}</Text>
           </View>
           <Badge
-            label={pipeline.enabled ? 'Active' : 'Disabled'}
-            variant={pipeline.enabled ? 'success' : 'secondary'}
+            label={pipeline.isEnabled ? 'Active' : 'Disabled'}
+            variant={pipeline.isEnabled ? 'success' : 'secondary'}
           />
         </View>
         {pipeline.description && (

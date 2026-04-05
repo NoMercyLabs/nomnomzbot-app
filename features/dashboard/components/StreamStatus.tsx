@@ -22,7 +22,7 @@ export function StreamStatus() {
     <Card className="gap-3">
       <View className="flex-row items-center justify-between">
         <Text className="text-base font-semibold text-white">Stream Status</Text>
-        <Badge variant={isLive ? 'danger' : 'muted'} dot>
+        <Badge variant={isLive ? 'danger' : 'muted'}>
           {isLive ? 'Live' : 'Offline'}
         </Badge>
       </View>
