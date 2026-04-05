@@ -8,7 +8,7 @@ import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
 
-import com.nomercybot.R
+import tv.nomercy.bot.R
 import expo.modules.ReactActivityDelegateWrapper
 
 class MainActivity : ReactActivity() {

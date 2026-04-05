@@ -87,7 +87,7 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.nomercybot"
+    namespace "tv.nomercy.bot"
     defaultConfig {
         applicationId "tv.nomercy.bot"
         minSdkVersion rootProject.ext.minSdkVersion
