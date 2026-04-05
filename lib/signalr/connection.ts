@@ -4,7 +4,6 @@ import {
   HubConnectionState,
   LogLevel,
 } from '@microsoft/signalr'
-import { Platform } from 'react-native'
 
 // Dynamic token getter — updated by useSignalR after auth changes.
 // Using a getter avoids stale tokens on refresh without recreating the connection.
@@ -15,9 +14,7 @@ export function setSignalRTokenGetter(getter: () => string): void {
 }
 
 function makeBaseUrl(hubPath: string): string {
-  return Platform.OS === 'web'
-    ? hubPath
-    : `${process.env.EXPO_PUBLIC_API_URL}${hubPath}`
+  return `${process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5080'}${hubPath}`
 }
 
 function buildConnection(hubPath: string): HubConnection {

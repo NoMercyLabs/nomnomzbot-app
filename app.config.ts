@@ -66,7 +66,7 @@ const config: ExpoConfig = {
 
   web: {
     bundler: 'metro',
-    output: 'server',
+    output: 'single',
     favicon: './assets/favicon.png',
   },
 

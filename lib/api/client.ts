@@ -1,5 +1,4 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
-import { Platform } from 'react-native'
 import type { ApiError } from './types'
 
 // Module-level token avoids circular dependency with auth store.
@@ -10,10 +9,7 @@ export function setAuthToken(token: string | null): void {
   _token = token
 }
 
-const baseURL =
-  Platform.OS === 'web'
-    ? ''
-    : process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:7000'
+const baseURL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5080'
 
 export const apiClient = axios.create({
   baseURL,
