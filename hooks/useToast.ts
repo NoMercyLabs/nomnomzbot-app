@@ -3,6 +3,7 @@ import { useNotificationStore } from '@/stores/useNotificationStore'
 
 export function useToast() {
   const addToast = useNotificationStore((s) => s.addToast)
+
   return {
     success: useCallback((message: string) => addToast('success', message), [addToast]),
     error: useCallback((message: string) => addToast('error', message), [addToast]),

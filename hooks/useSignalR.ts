@@ -1,24 +1,28 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { HubConnectionState, AppState as AppStateRN, Platform } from 'react-native'
-import { AppState } from 'react-native'
+import { HubConnectionState, type HubConnection } from '@microsoft/signalr'
+import { AppState, Platform } from 'react-native'
 import { useAuthStore } from '@/stores/useAuthStore'
 import {
   getSignalRConnection,
-  destroyConnection,
   incrementRefCount,
   decrementRefCount,
   getRefCount,
+  destroyConnection,
 } from '@/lib/signalr/connection'
 import type { SignalREventMap } from '@/types/signalr'
 import type { ConnectionStatus } from '@/lib/signalr/types'
 
 let statusListeners = new Set<(status: ConnectionStatus) => void>()
+let currentChannelRef: string | null = null
+
+function broadcastStatus(status: ConnectionStatus) {
+  statusListeners.forEach((fn) => fn(status))
+}
 
 export function useSignalR() {
   const [status, setStatus] = useState<ConnectionStatus>('disconnected')
   const [error, setError] = useState<string | null>(null)
   const accessToken = useAuthStore((s) => s.accessToken)
-  const currentChannelRef = useRef<string | null>(null)
 
   useEffect(() => {
     statusListeners.add(setStatus)
@@ -27,23 +31,25 @@ export function useSignalR() {
 
   const connect = useCallback(async () => {
     if (!accessToken) return
+
     const conn = getSignalRConnection(accessToken)
     incrementRefCount()
 
+    conn.onreconnecting(() => broadcastStatus('reconnecting'))
+    conn.onreconnected(() => broadcastStatus('connected'))
+    conn.onclose(() => broadcastStatus('disconnected'))
+
     if (conn.state === HubConnectionState.Disconnected) {
-      statusListeners.forEach((fn) => fn('connecting'))
+      broadcastStatus('connecting')
       try {
-        conn.onreconnecting(() => statusListeners.forEach((fn) => fn('reconnecting')))
-        conn.onreconnected(() => statusListeners.forEach((fn) => fn('connected')))
-        conn.onclose(() => statusListeners.forEach((fn) => fn('disconnected')))
         await conn.start()
-        statusListeners.forEach((fn) => fn('connected'))
+        broadcastStatus('connected')
       } catch (e) {
-        statusListeners.forEach((fn) => fn('disconnected'))
+        broadcastStatus('disconnected')
         setError((e as Error).message)
       }
-    } else {
-      statusListeners.forEach((fn) => fn('connected'))
+    } else if (conn.state === HubConnectionState.Connected) {
+      broadcastStatus('connected')
     }
   }, [accessToken])
 
@@ -51,7 +57,7 @@ export function useSignalR() {
     decrementRefCount()
     if (getRefCount() <= 0) {
       await destroyConnection()
-      statusListeners.forEach((fn) => fn('disconnected'))
+      broadcastStatus('disconnected')
     }
   }, [])
 
@@ -64,7 +70,7 @@ export function useSignalR() {
     conn.on(event as string, handler)
   }, [accessToken])
 
-  const off = useCallback((event: keyof SignalREventMap) => {
+  const off = useCallback(<K extends keyof SignalREventMap>(event: K) => {
     if (!accessToken) return
     const conn = getSignalRConnection(accessToken)
     conn.off(event as string)
@@ -73,19 +79,36 @@ export function useSignalR() {
   const invoke = useCallback(async <T>(method: string, ...args: unknown[]): Promise<T> => {
     if (!accessToken) throw new Error('Not authenticated')
     const conn = getSignalRConnection(accessToken)
-    if (conn.state !== HubConnectionState.Connected) throw new Error('SignalR not connected')
+    if (conn.state !== HubConnectionState.Connected) {
+      throw new Error('SignalR not connected')
+    }
     return conn.invoke<T>(method, ...args)
   }, [accessToken])
 
+  // Handle app foreground/background on mobile
   useEffect(() => {
     if (Platform.OS === 'web') return
-    const subscription = AppState.addEventListener('change', (nextState) => {
-      if (nextState === 'active' && accessToken) {
-        connect()
+
+    const subscription = AppState.addEventListener('change', async (nextState) => {
+      if (!accessToken) return
+      const conn = getSignalRConnection(accessToken)
+
+      if (nextState === 'active' && conn.state === HubConnectionState.Disconnected) {
+        broadcastStatus('connecting')
+        try {
+          await conn.start()
+          broadcastStatus('connected')
+          if (currentChannelRef) {
+            await conn.invoke('JoinChannel', currentChannelRef)
+          }
+        } catch (e) {
+          setError((e as Error).message)
+        }
       }
     })
+
     return () => subscription.remove()
-  }, [connect, accessToken])
+  }, [accessToken])
 
   useEffect(() => {
     return () => { disconnect() }

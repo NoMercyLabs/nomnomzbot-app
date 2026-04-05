@@ -17,15 +17,17 @@ export function useChannelQueryKey(base: string, ...rest: unknown[]) {
 export function useApiQuery<T>(
   key: string,
   path: string,
-  options?: Omit<UseQueryOptions<T, Error>, 'queryKey' | 'queryFn'>,
+  options?: Omit<UseQueryOptions<T, ApiError>, 'queryKey' | 'queryFn'>,
 ) {
   const channelId = useChannelStore((s) => s.currentChannel?.id)
   const queryKey = useChannelQueryKey(key)
 
-  return useQuery<T, Error>({
+  return useQuery<T, ApiError>({
     queryKey,
     queryFn: async () => {
-      const res = await apiClient.get<ApiResponse<T>>(`/api/v1/channels/${channelId}${path}`)
+      const res = await apiClient.get<ApiResponse<T>>(
+        `/v1/channels/${channelId}${path}`,
+      )
       return res.data.data
     },
     enabled: !!channelId,
@@ -33,15 +35,20 @@ export function useApiQuery<T>(
   })
 }
 
-export function usePaginatedQuery<T>(key: string, path: string, page: number, pageSize = 25) {
+export function usePaginatedQuery<T>(
+  key: string,
+  path: string,
+  page: number,
+  pageSize = 25,
+) {
   const channelId = useChannelStore((s) => s.currentChannel?.id)
   const queryKey = useChannelQueryKey(key, page, pageSize)
 
-  return useQuery<PaginatedResponse<T>, Error>({
+  return useQuery<PaginatedResponse<T>, ApiError>({
     queryKey,
     queryFn: async () => {
       const res = await apiClient.get<PaginatedResponse<T>>(
-        `/api/v1/channels/${channelId}${path}`,
+        `/v1/channels/${channelId}${path}`,
         { params: { page, pageSize } },
       )
       return res.data
@@ -64,10 +71,10 @@ export function useApiMutation<TData, TVariables>(
   const queryClient = useQueryClient()
   const addToast = useNotificationStore((s) => s.addToast)
 
-  return useMutation<TData, Error, TVariables>({
+  return useMutation<TData, ApiError, TVariables>({
     mutationFn: async (variables) => {
-      const url = `/api/v1/channels/${channelId}${path}`
-      const res = await apiClient[method]<ApiResponse<TData>>(url, variables)
+      const url = `/v1/channels/${channelId}${path}`
+      const res = await (apiClient[method] as Function)<ApiResponse<TData>>(url, variables)
       return res.data.data
     },
     onSuccess: (data) => {
@@ -76,10 +83,12 @@ export function useApiMutation<TData, TVariables>(
           queryClient.invalidateQueries({ queryKey: ['channel', channelId, key] })
         }
       }
-      if (options?.successMessage) addToast('success', options.successMessage)
+      if (options?.successMessage) {
+        addToast('success', options.successMessage)
+      }
       options?.onSuccess?.(data)
     },
-    onError: (error) => {
+    onError: (error: ApiError) => {
       addToast('error', error.message ?? 'An unexpected error occurred')
     },
   })

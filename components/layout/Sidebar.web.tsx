@@ -1,105 +1,87 @@
 import { View, Text, Pressable, ScrollView } from 'react-native'
-import { usePathname, router } from 'expo-router'
+import { useRouter, usePathname } from 'expo-router'
 import { useAppStore } from '@/stores/useAppStore'
 import { cn } from '@/lib/utils/cn'
 import {
-  LayoutDashboard, Terminal, Gift, MessageSquare,
-  Shield, Music, Globe, Users, Layers, Puzzle,
-  Key, CreditCard, Database, Settings, PanelLeftClose,
+  LayoutDashboard, Terminal, Gift, MessageSquare, Shield, Music, Puzzle,
+  Layers, Radio, Users, Link, Key, Settings, ChevronLeft, ChevronRight,
 } from 'lucide-react-native'
 
-const NAV_ITEMS = [
-  { href: '/(dashboard)', icon: LayoutDashboard, label: 'Dashboard' },
-  { href: '/(dashboard)/commands', icon: Terminal, label: 'Commands' },
-  { href: '/(dashboard)/rewards', icon: Gift, label: 'Rewards' },
-  { href: '/(dashboard)/chat', icon: MessageSquare, label: 'Chat' },
-  { href: '/(dashboard)/moderation', icon: Shield, label: 'Moderation' },
-  { href: '/(dashboard)/music', icon: Music, label: 'Music' },
-  { href: '/(dashboard)/stream', icon: Globe, label: 'Stream Info' },
-  { href: '/(dashboard)/community', icon: Users, label: 'Community' },
-  { href: '/(dashboard)/widgets', icon: Layers, label: 'Widgets' },
-  { href: '/(dashboard)/pipelines', icon: Puzzle, label: 'Pipelines' },
-  { href: '/(dashboard)/integrations', icon: Key, label: 'Integrations' },
-  { href: '/(dashboard)/permissions', icon: Shield, label: 'Permissions' },
-] as const
-
-const BOTTOM_ITEMS = [
-  { href: '/(dashboard)/settings', icon: Settings, label: 'Settings' },
-  { href: '/(dashboard)/billing', icon: CreditCard, label: 'Billing' },
-  { href: '/(dashboard)/my-data', icon: Database, label: 'My Data' },
-] as const
-
-interface SidebarItemProps {
-  href: string
-  icon: any
+interface NavItem {
   label: string
-  isActive: boolean
-  collapsed: boolean
+  href: string
+  icon: React.ReactNode
 }
 
-function SidebarItem({ href, icon: Icon, label, isActive, collapsed }: SidebarItemProps) {
-  return (
-    <Pressable
-      onPress={() => router.push(href as any)}
-      className={cn(
-        'mx-2 flex-row items-center gap-3 rounded-md px-3 py-2 active:bg-gray-800',
-        isActive ? 'bg-accent-500/15' : '',
-      )}
-    >
-      <Icon size={16} color={isActive ? '#a855f7' : '#6b7280'} />
-      {!collapsed && (
-        <Text className={cn('text-sm', isActive ? 'text-accent-400 font-medium' : 'text-gray-400')}>
-          {label}
-        </Text>
-      )}
-    </Pressable>
-  )
-}
+const NAV_ITEMS: NavItem[] = [
+  { label: 'Dashboard', href: '/(dashboard)', icon: <LayoutDashboard size={18} /> },
+  { label: 'Commands', href: '/(dashboard)/commands', icon: <Terminal size={18} /> },
+  { label: 'Rewards', href: '/(dashboard)/rewards', icon: <Gift size={18} /> },
+  { label: 'Chat', href: '/(dashboard)/chat', icon: <MessageSquare size={18} /> },
+  { label: 'Moderation', href: '/(dashboard)/moderation', icon: <Shield size={18} /> },
+  { label: 'Music', href: '/(dashboard)/music', icon: <Music size={18} /> },
+  { label: 'Pipelines', href: '/(dashboard)/pipelines', icon: <Puzzle size={18} /> },
+  { label: 'Widgets', href: '/(dashboard)/widgets', icon: <Layers size={18} /> },
+  { label: 'Stream', href: '/(dashboard)/stream', icon: <Radio size={18} /> },
+  { label: 'Community', href: '/(dashboard)/community', icon: <Users size={18} /> },
+  { label: 'Integrations', href: '/(dashboard)/integrations', icon: <Link size={18} /> },
+  { label: 'Permissions', href: '/(dashboard)/permissions', icon: <Key size={18} /> },
+  { label: 'Settings', href: '/(dashboard)/settings', icon: <Settings size={18} /> },
+]
 
 export function Sidebar() {
+  const router = useRouter()
   const pathname = usePathname()
   const { sidebarCollapsed, toggleSidebar } = useAppStore()
 
   return (
-    <View className={cn('h-full border-r border-gray-800 bg-gray-900', sidebarCollapsed ? 'w-14' : 'w-60')}>
-      <View className="border-b border-gray-800 p-3">
+    <View
+      className={cn(
+        'h-full border-r border-border bg-surface-raised flex flex-col transition-all',
+        sidebarCollapsed ? 'w-16' : 'w-56',
+      )}
+    >
+      <View className="flex-row items-center justify-between px-4 py-4 border-b border-border">
         {!sidebarCollapsed && (
-          <Text className="text-sm font-semibold text-white">NoMercy Bot</Text>
+          <Text className="text-gray-100 font-bold text-sm">NomercyBot</Text>
         )}
+        <Pressable onPress={toggleSidebar} className="p-1 rounded-lg active:bg-surface-overlay ml-auto">
+          {sidebarCollapsed
+            ? <ChevronRight size={16} color="rgb(156,163,175)" />
+            : <ChevronLeft size={16} color="rgb(156,163,175)" />
+          }
+        </Pressable>
       </View>
 
       <ScrollView className="flex-1 py-2">
-        {NAV_ITEMS.map((item) => (
-          <SidebarItem
-            key={item.href}
-            icon={item.icon}
-            label={item.label}
-            href={item.href}
-            isActive={pathname === item.href || (item.href !== '/(dashboard)' && pathname.startsWith(item.href))}
-            collapsed={sidebarCollapsed}
-          />
-        ))}
+        {NAV_ITEMS.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          return (
+            <Pressable
+              key={item.href}
+              onPress={() => router.push(item.href as any)}
+              className={cn(
+                'flex-row items-center gap-3 mx-2 px-3 py-2.5 rounded-lg',
+                isActive ? 'bg-accent-900' : 'active:bg-surface-overlay',
+              )}
+            >
+              <View style={{ color: isActive ? 'rgb(167,139,250)' : 'rgb(156,163,175)' }}>
+                {item.icon}
+              </View>
+              {!sidebarCollapsed && (
+                <Text
+                  className={cn(
+                    'text-sm font-medium',
+                    isActive ? 'text-accent-300' : 'text-gray-400',
+                  )}
+                >
+                  {item.label}
+                </Text>
+              )}
+            </Pressable>
+          )
+        })}
       </ScrollView>
-
-      <View className="border-t border-gray-800 py-2">
-        {BOTTOM_ITEMS.map((item) => (
-          <SidebarItem
-            key={item.href}
-            icon={item.icon}
-            label={item.label}
-            href={item.href}
-            isActive={pathname.startsWith(item.href)}
-            collapsed={sidebarCollapsed}
-          />
-        ))}
-        <Pressable
-          onPress={toggleSidebar}
-          className="mx-2 flex-row items-center gap-3 rounded-md px-3 py-2 active:bg-gray-800"
-        >
-          <PanelLeftClose size={16} color="#6b7280" style={sidebarCollapsed ? { transform: [{ scaleX: -1 }] } : undefined} />
-          {!sidebarCollapsed && <Text className="text-sm text-gray-400">Collapse</Text>}
-        </Pressable>
-      </View>
     </View>
   )
 }

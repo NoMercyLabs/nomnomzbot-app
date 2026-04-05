@@ -2,20 +2,21 @@ import { View, Text } from 'react-native'
 import { useConnectionStatus } from '@/hooks/useConnectionStatus'
 import { cn } from '@/lib/utils/cn'
 
-export function ConnectionStatus() {
-  const { isConnected, isReconnecting } = useConnectionStatus()
+const STATUS_CONFIG = {
+  connected: { color: 'bg-green-500', label: 'Connected' },
+  connecting: { color: 'bg-amber-500', label: 'Connecting...' },
+  reconnecting: { color: 'bg-amber-500', label: 'Reconnecting...' },
+  disconnected: { color: 'bg-red-500', label: 'Disconnected' },
+} as const
 
-  if (isConnected) return null
+export function ConnectionStatus() {
+  const { status } = useConnectionStatus()
+  const config = STATUS_CONFIG[status]
 
   return (
-    <View className={cn(
-      'flex-row items-center gap-2 px-4 py-2',
-      isReconnecting ? 'bg-yellow-500/20' : 'bg-red-500/20',
-    )}>
-      <View className={cn('h-2 w-2 rounded-full', isReconnecting ? 'bg-yellow-400' : 'bg-red-400')} />
-      <Text className={cn('text-xs', isReconnecting ? 'text-yellow-400' : 'text-red-400')}>
-        {isReconnecting ? 'Reconnecting...' : 'Disconnected'}
-      </Text>
+    <View className="flex-row items-center gap-2">
+      <View className={cn('h-2 w-2 rounded-full', config.color)} />
+      <Text className="text-xs text-gray-400">{config.label}</Text>
     </View>
   )
 }

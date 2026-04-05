@@ -13,7 +13,11 @@ export function useConfirm() {
     isOpen: boolean
     options: ConfirmOptions | null
     resolve: ((confirmed: boolean) => void) | null
-  }>({ isOpen: false, options: null, resolve: null })
+  }>({
+    isOpen: false,
+    options: null,
+    resolve: null,
+  })
 
   const confirm = useCallback((options: ConfirmOptions): Promise<boolean> => {
     return new Promise((resolve) => {
@@ -31,5 +35,11 @@ export function useConfirm() {
     setState({ isOpen: false, options: null, resolve: null })
   }, [state.resolve])
 
-  return { isOpen: state.isOpen, options: state.options, confirm, handleConfirm, handleCancel }
+  return {
+    isOpen: state.isOpen,
+    options: state.options,
+    confirm,
+    handleConfirm,
+    handleCancel,
+  }
 }

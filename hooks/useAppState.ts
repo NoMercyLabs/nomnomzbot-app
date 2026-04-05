@@ -13,13 +13,18 @@ export function useAppState(options?: {
     if (Platform.OS === 'web') return
 
     const subscription = AppState.addEventListener('change', (nextState: AppStateStatus) => {
-      if (appState.current.match(/inactive|background/) && nextState === 'active') {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextState === 'active'
+      ) {
         queryClient.invalidateQueries()
         options?.onForeground?.()
       }
+
       if (nextState.match(/inactive|background/)) {
         options?.onBackground?.()
       }
+
       appState.current = nextState
     })
 

@@ -1,9 +1,17 @@
 import { Platform } from 'react-native'
 import { useBreakpoint } from './useBreakpoint'
 
+export type AppPlatform = 'web' | 'ios' | 'android' | 'tablet'
+
 export function usePlatform() {
   const { isTablet } = useBreakpoint()
-  const platform = Platform.OS === 'web' ? 'web' : isTablet ? 'tablet' : Platform.OS
+
+  const platform: AppPlatform =
+    Platform.OS === 'web'
+      ? 'web'
+      : isTablet
+        ? 'tablet'
+        : (Platform.OS as 'ios' | 'android')
 
   return {
     platform,

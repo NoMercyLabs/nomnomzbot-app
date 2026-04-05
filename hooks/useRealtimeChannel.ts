@@ -10,14 +10,17 @@ export function useRealtimeChannel() {
   const queryClient = useQueryClient()
   const currentGroupRef = useRef<string | null>(null)
 
-  useEffect(() => { connect() }, [connect])
+  useEffect(() => {
+    connect()
+  }, [connect])
 
+  // Join/leave channel group
   useEffect(() => {
     if (status !== 'connected' || !channelId) return
 
     const join = async () => {
       if (currentGroupRef.current) {
-        await invoke('LeaveChannel', currentGroupRef.current)
+        await invoke('LeaveChannel', currentGroupRef.current).catch(() => {})
       }
       await invoke('JoinChannel', channelId)
       currentGroupRef.current = channelId
@@ -33,12 +36,13 @@ export function useRealtimeChannel() {
     }
   }, [status, channelId, invoke])
 
+  // Register event handlers
   useEffect(() => {
     if (status !== 'connected') return
 
-    on('ChannelUpdated', (data) => updateFromRealtime(data))
-    on('ChannelWentLive', () => updateFromRealtime({ isLive: true }))
-    on('ChannelWentOffline', () => updateFromRealtime({ isLive: false, viewerCount: 0 }))
+    on('ChannelUpdated', (data) => { updateFromRealtime(data) })
+    on('ChannelWentLive', () => { updateFromRealtime({ isLive: true }) })
+    on('ChannelWentOffline', () => { updateFromRealtime({ isLive: false, viewerCount: 0 }) })
 
     on('CommandUpdated', () => {
       queryClient.invalidateQueries({ queryKey: ['channel', channelId, 'commands'] })
@@ -58,6 +62,14 @@ export function useRealtimeChannel() {
     on('BotStatus', (data) => {
       queryClient.setQueryData(['channel', channelId, 'bot-status'], data)
     })
+    on('StreamStatusChanged', (data) => {
+      updateFromRealtime({
+        isLive: data.isLive,
+        viewerCount: data.viewerCount ?? 0,
+        title: data.title,
+        gameName: data.gameName,
+      })
+    })
 
     return () => {
       off('ChannelUpdated')
@@ -69,6 +81,7 @@ export function useRealtimeChannel() {
       off('NowPlayingChanged')
       off('QueueUpdated')
       off('BotStatus')
+      off('StreamStatusChanged')
     }
   }, [status, channelId, on, off, queryClient, updateFromRealtime])
 

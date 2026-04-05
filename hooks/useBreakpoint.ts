@@ -4,7 +4,13 @@ import * as Device from 'expo-device'
 
 type Breakpoint = 'sm' | 'md' | 'lg' | 'xl' | '2xl'
 
-const BREAKPOINTS = { sm: 640, md: 768, lg: 1024, xl: 1280, '2xl': 1536 } as const
+const BREAKPOINTS = {
+  sm: 640,
+  md: 768,
+  lg: 1024,
+  xl: 1280,
+  '2xl': 1536,
+} as const
 
 function getBreakpoint(width: number): Breakpoint {
   if (width >= BREAKPOINTS['2xl']) return '2xl'
@@ -34,7 +40,7 @@ export function useBreakpoint() {
     breakpoint,
     isMobile: breakpoint === 'sm',
     isTablet,
-    isDesktop: Platform.OS === 'web' || breakpoint === 'lg' || breakpoint === 'xl' || breakpoint === '2xl',
+    isDesktop: Platform.OS === 'web' || ['lg', 'xl', '2xl'].includes(breakpoint),
     isAtLeast: (bp: Breakpoint) => width >= BREAKPOINTS[bp],
   }
 }

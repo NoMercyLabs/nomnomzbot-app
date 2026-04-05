@@ -1,25 +1,31 @@
 import { View, Text, FlatList, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useChannelStore } from '@/stores/useChannelStore'
-import { useRealtimeChannel } from '@/hooks/useRealtimeChannel'
+import { useSignalR } from '@/hooks/useSignalR'
 import { useFeatureTranslation } from '@/hooks/useFeatureTranslation'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Send } from 'lucide-react-native'
-import type { ChatMessage } from '@/types/signalr'
+import type { ChatMessagePayload } from '@/types/signalr'
 
 export function ChatScreen() {
   const { t } = useFeatureTranslation('chat')
   const broadcasterId = useChannelStore((s) => s.currentChannel?.broadcasterId)
-  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [messages, setMessages] = useState<(ChatMessagePayload & { _key: string })[]>([])
   const [input, setInput] = useState('')
   const listRef = useRef<FlatList>(null)
+  const { on, off, connect } = useSignalR()
 
-  useRealtimeChannel(broadcasterId, {
-    ChatMessage: (msg) => {
-      setMessages((prev) => [...prev.slice(-199), msg])
+  useEffect(() => {
+    connect()
+  }, [connect])
+
+  useEffect(() => {
+    on('ChatMessage', (msg) => {
+      setMessages((prev) => [...prev.slice(-199), { ...msg, _key: `${msg.userId}-${msg.timestamp}` }])
       listRef.current?.scrollToEnd({ animated: true })
-    },
-  })
+    })
+    return () => { off('ChatMessage') }
+  }, [on, off])
 
   return (
     <KeyboardAvoidingView
@@ -33,7 +39,7 @@ export function ChatScreen() {
       <FlatList
         ref={listRef}
         data={messages}
-        keyExtractor={(m) => m.id}
+        keyExtractor={(m) => m._key}
         className="flex-1"
         contentContainerClassName="px-4 py-2 gap-0.5"
         ListEmptyComponent={
@@ -41,7 +47,7 @@ export function ChatScreen() {
         }
         renderItem={({ item }) => (
           <View className="flex-row gap-2 py-1">
-            <Text className="text-xs font-semibold" style={{ color: item.color ?? '#a855f7' }}>
+            <Text className="text-xs font-semibold" style={{ color: item.colorHex ?? '#a855f7' }}>
               {item.username}
             </Text>
             <Text className="flex-1 text-xs text-gray-300">{item.message}</Text>
