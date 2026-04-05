@@ -8,7 +8,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { AuthProvider } from '@/hooks/useAuth'
 import { ToastProvider } from '@/components/feedback/ToastProvider'
+import * as WebBrowser from 'expo-web-browser'
 import '@/lib/i18n'
+
+// Required for expo-auth-session / OAuth web flow to close the popup correctly
+WebBrowser.maybeCompleteAuthSession()
 
 const queryClient = new QueryClient({
   defaultOptions: {
