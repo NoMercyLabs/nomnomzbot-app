@@ -1,45 +1,63 @@
-import { View, ScrollView, Text } from 'react-native'
+import { useEffect } from 'react'
+import { View, ScrollView, Alert } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Trash2 } from 'lucide-react-native'
 import { apiClient } from '@/lib/api/client'
 import { useChannelStore } from '@/stores/useChannelStore'
-import { useFeatureTranslation } from '@/hooks/useFeatureTranslation'
+import { useToast } from '@/hooks/useToast'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Toggle } from '@/components/ui/Toggle'
 import { Select } from '@/components/ui/Select'
+import { Card } from '@/components/ui/Card'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 const commandSchema = z.object({
-  name: z.string().min(1).startsWith('!'),
-  response: z.string().min(1),
+  name: z.string().min(1, 'Required').startsWith('!', 'Must start with !'),
+  response: z.string().min(1, 'Required'),
   cooldown: z.number().min(0).max(86400),
   userCooldown: z.number().min(0).max(86400),
   permission: z.enum(['everyone', 'subscriber', 'vip', 'moderator', 'broadcaster']),
   enabled: z.boolean(),
 })
 
-type CommandForm = z.infer<typeof commandSchema>
+type CommandFormData = z.infer<typeof commandSchema>
+
+const PERMISSION_OPTIONS = [
+  { label: 'Everyone', value: 'everyone' },
+  { label: 'Subscriber', value: 'subscriber' },
+  { label: 'VIP', value: 'vip' },
+  { label: 'Moderator', value: 'moderator' },
+  { label: 'Broadcaster', value: 'broadcaster' },
+]
 
 export function CommandDetailScreen() {
   const { name } = useLocalSearchParams<{ name: string }>()
-  const { t } = useFeatureTranslation('commands')
   const broadcasterId = useChannelStore((s) => s.currentChannel?.broadcasterId)
   const qc = useQueryClient()
+  const toast = useToast()
   const isNew = name === 'new'
 
   const { data, isLoading } = useQuery({
     queryKey: ['commands', broadcasterId, name],
-    queryFn: () => apiClient.get(`/api/${broadcasterId}/commands/${name}`).then((r) => r.data),
+    queryFn: () =>
+      apiClient.get(`/api/${broadcasterId}/commands/${name}`).then((r) => r.data),
     enabled: !!broadcasterId && !isNew,
   })
 
-  const { control, handleSubmit, formState: { errors } } = useForm<CommandForm>({
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<CommandFormData>({
     resolver: zodResolver(commandSchema),
-    defaultValues: data ?? {
+    defaultValues: {
       name: '',
       response: '',
       cooldown: 0,
@@ -49,44 +67,107 @@ export function CommandDetailScreen() {
     },
   })
 
+  useEffect(() => {
+    if (data) {
+      reset({
+        name: data.name ?? '',
+        response: data.response ?? '',
+        cooldown: data.cooldown ?? 0,
+        userCooldown: data.userCooldown ?? 0,
+        permission: data.permission ?? 'everyone',
+        enabled: data.enabled ?? true,
+      })
+    }
+  }, [data, reset])
+
   const saveMutation = useMutation({
-    mutationFn: (values: CommandForm) =>
+    mutationFn: (values: CommandFormData) =>
       isNew
-        ? apiClient.post(`/api/${broadcasterId}/commands`, values)
-        : apiClient.put(`/api/${broadcasterId}/commands/${name}`, values),
+        ? apiClient.post(`/api/${broadcasterId}/commands`, values).then((r) => r.data)
+        : apiClient.put(`/api/${broadcasterId}/commands/${name}`, values).then((r) => r.data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['commands', broadcasterId] })
+      toast.success(isNew ? 'Command created' : 'Command saved')
       router.back()
     },
+    onError: () => toast.error('Failed to save command'),
   })
+
+  const deleteMutation = useMutation({
+    mutationFn: () =>
+      apiClient.delete(`/api/${broadcasterId}/commands/${name}`).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['commands', broadcasterId] })
+      toast.success('Command deleted')
+      router.back()
+    },
+    onError: () => toast.error('Failed to delete command'),
+  })
+
+  function confirmDelete() {
+    Alert.alert('Delete Command', `Delete "${name}"? This cannot be undone.`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => deleteMutation.mutate(),
+      },
+    ])
+  }
+
+  if (isLoading) {
+    return (
+      <View className="flex-1 bg-gray-950">
+        <PageHeader title="Command" showBack />
+        <View className="p-4 gap-3">
+          <Skeleton className="h-14 rounded-xl" />
+          <Skeleton className="h-24 rounded-xl" />
+          <Skeleton className="h-14 rounded-xl" />
+          <Skeleton className="h-14 rounded-xl" />
+        </View>
+      </View>
+    )
+  }
 
   return (
     <ScrollView className="flex-1 bg-gray-950" contentContainerClassName="p-4 gap-4">
       <PageHeader
-        title={isNew ? 'New Command' : name}
+        title={isNew ? 'New Command' : name ?? 'Command'}
         showBack
         rightContent={
-          <Button
-            size="sm"
-            loading={saveMutation.isPending}
-            onPress={handleSubmit((v) => saveMutation.mutate(v))}
-          >
-            {t('form.save')}
-          </Button>
+          <View className="flex-row gap-2">
+            {!isNew && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onPress={confirmDelete}
+                loading={deleteMutation.isPending}
+                leftIcon={<Trash2 size={14} color="#ef4444" />}
+                label="Delete"
+              />
+            )}
+            <Button
+              size="sm"
+              loading={saveMutation.isPending}
+              onPress={handleSubmit((v) => saveMutation.mutate(v))}
+              label="Save"
+            />
+          </View>
         }
       />
 
       <Controller
         control={control}
         name="name"
-        render={({ field }) => (
+        render={({ field: { onChange, value } }) => (
           <Input
-            label={t('form.name')}
-            placeholder={t('form.namePlaceholder')}
-            value={field.value}
-            onChangeText={field.onChange}
+            label="Command Name"
+            placeholder="!command"
+            value={value}
+            onChangeText={onChange}
             error={errors.name?.message}
             autoCapitalize="none"
+            autoCorrect={false}
           />
         )}
       />
@@ -94,15 +175,15 @@ export function CommandDetailScreen() {
       <Controller
         control={control}
         name="response"
-        render={({ field }) => (
+        render={({ field: { onChange, value } }) => (
           <Input
-            label={t('form.response')}
-            placeholder={t('form.responsePlaceholder')}
-            value={field.value}
-            onChangeText={field.onChange}
+            label="Response"
+            placeholder="Bot response text..."
+            value={value}
+            onChangeText={onChange}
             error={errors.response?.message}
             multiline
-            numberOfLines={3}
+            numberOfLines={4}
           />
         )}
       />
@@ -110,32 +191,60 @@ export function CommandDetailScreen() {
       <Controller
         control={control}
         name="permission"
-        render={({ field }) => (
+        render={({ field: { onChange, value } }) => (
           <Select
-            label={t('form.permission')}
-            value={field.value}
-            onValueChange={field.onChange}
-            options={[
-              { label: t('permissions.everyone'), value: 'everyone' },
-              { label: t('permissions.subscriber'), value: 'subscriber' },
-              { label: t('permissions.vip'), value: 'vip' },
-              { label: t('permissions.moderator'), value: 'moderator' },
-              { label: t('permissions.broadcaster'), value: 'broadcaster' },
-            ]}
+            label="Permission"
+            value={value}
+            onValueChange={onChange}
+            options={PERMISSION_OPTIONS}
           />
         )}
       />
 
-      <View className="flex-row items-center justify-between rounded-lg bg-gray-900 border border-gray-800 px-4 py-3">
-        <Text className="text-sm text-gray-300">{t('form.enabled')}</Text>
+      <Card className="gap-4">
         <Controller
           control={control}
-          name="enabled"
-          render={({ field }) => (
-            <Toggle value={field.value} onValueChange={field.onChange} />
+          name="cooldown"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Global cooldown (seconds)"
+              placeholder="0"
+              value={String(value)}
+              onChangeText={(v) => onChange(parseInt(v, 10) || 0)}
+              keyboardType="numeric"
+              error={errors.cooldown?.message}
+            />
           )}
         />
-      </View>
+
+        <Controller
+          control={control}
+          name="userCooldown"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Per-user cooldown (seconds)"
+              placeholder="0"
+              value={String(value)}
+              onChangeText={(v) => onChange(parseInt(v, 10) || 0)}
+              keyboardType="numeric"
+              error={errors.userCooldown?.message}
+            />
+          )}
+        />
+      </Card>
+
+      <Controller
+        control={control}
+        name="enabled"
+        render={({ field: { onChange, value } }) => (
+          <Toggle
+            label="Enabled"
+            description="Command will respond when triggered in chat"
+            value={value}
+            onValueChange={onChange}
+          />
+        )}
+      />
     </ScrollView>
   )
 }

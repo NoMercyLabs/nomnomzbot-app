@@ -7,7 +7,7 @@ export function useTimers() {
   const qc = useQueryClient()
   const broadcasterId = useChannelStore((s) => s.currentChannel?.broadcasterId)
 
-  const { data: timers = [], isLoading } = useQuery({
+  const { data: timers = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['timers', broadcasterId],
     queryFn: () => timersApi.list(broadcasterId!),
     enabled: !!broadcasterId,
@@ -32,6 +32,8 @@ export function useTimers() {
   return {
     timers,
     isLoading,
+    refetch,
+    isRefetching,
     createTimer: createMutation.mutateAsync,
     updateTimer: (id: string, data: TimerUpdate) => updateMutation.mutateAsync({ id, data }),
     deleteTimer: deleteMutation.mutateAsync,

@@ -1,3 +1,7 @@
+import type { ChatFragment, ChatBadge, ChatMessageType } from '@/types/signalr'
+
+export type { ChatFragment, ChatBadge, ChatMessageType }
+
 export interface ChatMessage {
   id: string
   channelId: string
@@ -5,11 +9,13 @@ export interface ChatMessage {
   username: string
   displayName: string
   userType: 'viewer' | 'subscriber' | 'vip' | 'moderator' | 'broadcaster'
-  /** Hex color from Twitch (e.g. "#FF0000") */
-  colorHex: string
+  /** Twitch user color hex (e.g. "#FF0000") */
+  color: string
+  /** Plain-text fallback (all fragment texts joined) */
   message: string
-  badges: Array<{ setId: string; id: string; info?: string }>
-  fragments: Array<{ type: string; text: string; emote?: { id: string; format: string; setId: string } }>
+  badges: ChatBadge[]
+  fragments: ChatFragment[]
+  messageType: ChatMessageType
   isCommand: boolean
   isCheer: boolean
   bitsAmount?: number

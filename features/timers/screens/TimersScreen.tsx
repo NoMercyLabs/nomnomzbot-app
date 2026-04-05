@@ -1,4 +1,4 @@
-import { View, ScrollView } from 'react-native'
+import { View, ScrollView, RefreshControl } from 'react-native'
 import { router } from 'expo-router'
 import { Plus } from 'lucide-react-native'
 import { PageHeader } from '@/components/layout/PageHeader'
@@ -10,7 +10,7 @@ import { useTimers } from '../hooks/useTimers'
 import { useToast } from '@/hooks/useToast'
 
 export function TimersScreen() {
-  const { timers, isLoading, updateTimer, deleteTimer } = useTimers()
+  const { timers, isLoading, refetch, isRefetching, updateTimer, deleteTimer } = useTimers()
   const toast = useToast()
   const activeCount = timers.filter((t) => t.isEnabled).length
 
@@ -37,7 +37,13 @@ export function TimersScreen() {
         }
       />
 
-      <ScrollView className="flex-1" contentContainerClassName="px-4 py-4 gap-3">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-4 py-4 gap-3"
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#9146FF" />
+        }
+      >
         {isLoading ? (
           <View className="gap-3">
             {Array.from({ length: 4 }).map((_, i) => (

@@ -7,6 +7,7 @@ import { useRealtimeChannel } from '@/hooks/useRealtimeChannel'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { ChannelSwitcher } from '@/components/layout/ChannelSwitcher'
 import { ConnectionStatus } from '@/components/layout/ConnectionStatus'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { View } from 'react-native'
 import {
   LayoutDashboard,
@@ -37,9 +38,9 @@ export default function DashboardLayout() {
             <ChannelSwitcher />
             <ConnectionStatus />
           </View>
-          <View className="flex-1">
+          <ErrorBoundary>
             <Slot />
-          </View>
+          </ErrorBoundary>
         </View>
       </View>
     )

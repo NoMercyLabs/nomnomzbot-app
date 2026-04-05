@@ -1,6 +1,6 @@
 import {
   View, Text, FlatList, TextInput, Pressable,
-  KeyboardAvoidingView, Platform, Modal,
+  KeyboardAvoidingView, Platform, Modal, Image,
 } from 'react-native'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useChannelStore } from '@/stores/useChannelStore'
@@ -11,10 +11,136 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { Send, X, Ban, Clock, Trash2, Shield, ChevronDown } from 'lucide-react-native'
-import type { ChatMessagePayload } from '@/types/signalr'
+import { Send, X, Ban, Clock, Trash2, ChevronDown } from 'lucide-react-native'
+import type { ChatMessagePayload, ChatFragment, ChatBadge } from '@/types/signalr'
 
 type ChatMsg = ChatMessagePayload & { _key: string; isDeleted?: boolean }
+
+// Twitch emote CDN
+function emoteUrl(id: string, format: 'static' | 'animated' = 'static'): string {
+  return `https://static-cdn.jtvnw.net/emoticons/v2/${id}/${format}/dark/1.0`
+}
+
+// Twitch badge CDN (v1 per badge id)
+function badgeUrl(badgeId: string): string {
+  return `https://static-cdn.jtvnw.net/badges/v1/${badgeId}/1`
+}
+
+// Known badge set → color for fallback text badges
+const BADGE_COLORS: Record<string, string> = {
+  broadcaster: '#ef4444',
+  moderator: '#00ad03',
+  vip: '#e005b9',
+  subscriber: '#8b5cf6',
+  staff: '#f59e0b',
+  partner: '#9146FF',
+}
+
+function BadgeRow({ badges }: { badges: ChatBadge[] }) {
+  if (!badges.length) return null
+  return (
+    <View className="flex-row items-center gap-0.5 mr-1">
+      {badges.map((b) => (
+        <Image
+          key={`${b.setId}-${b.id}`}
+          source={{ uri: badgeUrl(b.id) }}
+          style={{ width: 16, height: 16 }}
+          resizeMode="contain"
+        />
+      ))}
+    </View>
+  )
+}
+
+function FragmentList({
+  fragments,
+  isDeleted,
+}: {
+  fragments: ChatFragment[]
+  isDeleted: boolean
+}) {
+  if (isDeleted) {
+    return (
+      <Text className="flex-1 text-xs text-gray-700 italic">[message deleted]</Text>
+    )
+  }
+
+  return (
+    <Text className="flex-1 text-xs text-gray-300 leading-5" style={{ flexShrink: 1 }}>
+      {fragments.map((frag, i) => {
+        if (frag.type === 'emote' && frag.emote) {
+          return (
+            <Image
+              key={i}
+              source={{ uri: emoteUrl(frag.emote.id, frag.emote.format) }}
+              style={{ width: 20, height: 20 }}
+              resizeMode="contain"
+            />
+          )
+        }
+        if (frag.type === 'mention') {
+          return (
+            <Text key={i} style={{ color: '#60a5fa' }}>
+              {frag.text}
+            </Text>
+          )
+        }
+        if (frag.type === 'cheermote' && frag.cheermote) {
+          return (
+            <Text key={i} style={{ color: frag.cheermote.color ?? '#f59e0b', fontWeight: '700' }}>
+              {frag.text}
+            </Text>
+          )
+        }
+        return <Text key={i}>{frag.text}</Text>
+      })}
+    </Text>
+  )
+}
+
+function ChatMessageRow({
+  msg,
+  onLongPress,
+}: {
+  msg: ChatMsg
+  onLongPress: () => void
+}) {
+  const nameColor = msg.color || msg.colorHex || '#a855f7'
+  const isHighlighted = msg.messageType === 'channel_points_highlighted'
+  const isSubOnly = msg.messageType === 'channel_points_sub_only'
+  const isIntro = msg.messageType === 'user_intro'
+
+  // Ensure we have fragments; fall back to a single text fragment
+  const fragments: ChatFragment[] =
+    msg.fragments?.length
+      ? msg.fragments
+      : [{ type: 'text', text: msg.message }]
+
+  return (
+    <Pressable
+      onLongPress={() => !msg.isDeleted && onLongPress()}
+      className={[
+        'flex-row py-0.5 px-1 rounded',
+        isHighlighted && 'bg-yellow-900/20 border-l-2 border-yellow-500',
+        isSubOnly && 'bg-purple-900/20 border-l-2 border-purple-500',
+        isIntro && 'bg-blue-900/20 border-l-2 border-blue-500',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <BadgeRow badges={msg.badges ?? []} />
+      <Text
+        className="text-xs font-bold shrink-0"
+        style={{ color: msg.isDeleted ? '#374151' : nameColor }}
+      >
+        {msg.displayName ?? msg.username}:{' '}
+      </Text>
+      <FragmentList fragments={fragments} isDeleted={!!msg.isDeleted} />
+    </Pressable>
+  )
+}
+
+// ──── User card (mod actions) ────────────────────────────────────────────────
 
 interface UserCardProps {
   msg: ChatMsg
@@ -27,19 +153,21 @@ function UserCard({ msg, onClose, broadcasterId }: UserCardProps) {
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState<string | null>(null)
 
+  const badgeVariant: Record<ChatMsg['userType'], 'muted' | 'success' | 'info' | 'warning' | 'danger'> = {
+    viewer: 'muted',
+    subscriber: 'success',
+    vip: 'info',
+    moderator: 'warning',
+    broadcaster: 'danger',
+  }
+
   async function doAction(action: 'ban' | 'timeout' | 'delete') {
     setLoading(action)
     try {
       if (action === 'delete') {
-        await apiClient.delete(
-          `/api/${broadcasterId}/chat/messages/${(msg as any).id}`,
-          { data: { reason } },
-        )
+        await apiClient.delete(`/api/${broadcasterId}/chat/messages/${msg.id}`, { data: { reason } })
       } else if (action === 'ban') {
-        await apiClient.post(`/api/${broadcasterId}/chat/bans`, {
-          userId: msg.userId,
-          reason,
-        })
+        await apiClient.post(`/api/${broadcasterId}/chat/bans`, { userId: msg.userId, reason })
       } else {
         await apiClient.post(`/api/${broadcasterId}/chat/timeouts`, {
           userId: msg.userId,
@@ -53,20 +181,21 @@ function UserCard({ msg, onClose, broadcasterId }: UserCardProps) {
     }
   }
 
-  const badgeVariant: Record<ChatMsg['userType'], 'muted' | 'success' | 'info' | 'warning' | 'danger'> = {
-    viewer: 'muted',
-    subscriber: 'success',
-    vip: 'info',
-    moderator: 'warning',
-    broadcaster: 'danger',
-  }
+  const nameColor = msg.color || msg.colorHex || '#a855f7'
+  const plainText = msg.fragments?.length
+    ? msg.fragments.map((f) => f.text).join('')
+    : msg.message
 
   return (
     <View className="bg-gray-900 rounded-2xl overflow-hidden" style={{ width: 300 }}>
-      {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
         <View className="gap-1">
-          <Text className="text-sm font-bold text-gray-100">{msg.displayName}</Text>
+          <View className="flex-row items-center gap-2">
+            <BadgeRow badges={msg.badges ?? []} />
+            <Text className="text-sm font-bold" style={{ color: nameColor }}>
+              {msg.displayName ?? msg.username}
+            </Text>
+          </View>
           <View className="flex-row items-center gap-2">
             <Text className="text-xs text-gray-500">@{msg.username}</Text>
             <Badge variant={badgeVariant[msg.userType]} label={msg.userType} />
@@ -77,22 +206,14 @@ function UserCard({ msg, onClose, broadcasterId }: UserCardProps) {
         </Pressable>
       </View>
 
-      {/* Last message */}
       <View className="px-4 py-3 border-b border-border">
         <Text className="text-xs text-gray-500 mb-1">Last message</Text>
-        <Text className="text-sm text-gray-300">{msg.message}</Text>
+        <Text className="text-sm text-gray-300">{plainText}</Text>
       </View>
 
-      {/* Mod actions */}
       <View className="px-4 py-3 gap-3">
         <Text className="text-xs font-semibold uppercase text-gray-500">Moderation</Text>
-
-        <Input
-          placeholder="Reason (optional)"
-          value={reason}
-          onChangeText={setReason}
-        />
-
+        <Input placeholder="Reason (optional)" value={reason} onChangeText={setReason} />
         <View className="flex-row items-center gap-2">
           <View className="flex-1">
             <Input
@@ -111,7 +232,6 @@ function UserCard({ msg, onClose, broadcasterId }: UserCardProps) {
             label="Timeout"
           />
         </View>
-
         <View className="flex-row gap-2">
           <Button
             variant="danger"
@@ -137,12 +257,7 @@ function UserCard({ msg, onClose, broadcasterId }: UserCardProps) {
   )
 }
 
-const USER_BADGE_COLORS: Record<string, string> = {
-  broadcaster: '#ef4444',
-  moderator: '#00ad03',
-  vip: '#e005b9',
-  subscriber: '#8b5cf6',
-}
+// ──── Main ChatScreen ────────────────────────────────────────────────────────
 
 export function ChatScreen() {
   const { t } = useFeatureTranslation('chat')
@@ -163,15 +278,15 @@ export function ChatScreen() {
     on('ChatMessage', (msg) => {
       if (!isPaused) {
         setMessages((prev) => {
-          const next = [...prev.slice(-299), { ...msg, _key: `${msg.userId}-${msg.timestamp}` }]
-          return next
+          const key = msg.id ?? `${msg.userId}-${msg.timestamp}`
+          return [...prev.slice(-299), { ...msg, _key: key }]
         })
       }
     })
 
     on('MessageDeleted', ({ messageId }) => {
       setMessages((prev) =>
-        prev.map((m) => (m._key.includes(messageId) ? { ...m, isDeleted: true } : m)),
+        prev.map((m) => (m.id === messageId || m._key.includes(messageId) ? { ...m, isDeleted: true } : m)),
       )
     })
 
@@ -215,7 +330,7 @@ export function ChatScreen() {
         data={messages}
         keyExtractor={(m) => m._key}
         className="flex-1"
-        contentContainerClassName="px-4 py-2"
+        contentContainerClassName="px-2 py-2"
         onScrollBeginDrag={() => setIsPaused(true)}
         onEndReached={() => {
           setShowScrollBtn(false)
@@ -228,30 +343,10 @@ export function ChatScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <Pressable
-            onLongPress={() => !item.isDeleted && setSelectedMsg(item)}
-            className="flex-row gap-2 py-0.5"
-          >
-            <Text
-              className="text-xs font-bold shrink-0"
-              style={{ color: item.isDeleted ? '#374151' : (item.colorHex ?? '#a855f7') }}
-            >
-              {item.username}:
-            </Text>
-            {item.isDeleted ? (
-              <Text className="flex-1 text-xs text-gray-700 italic">
-                [message deleted]
-              </Text>
-            ) : (
-              <Text className="flex-1 text-xs text-gray-300 leading-5">
-                {item.message}
-              </Text>
-            )}
-          </Pressable>
+          <ChatMessageRow msg={item} onLongPress={() => setSelectedMsg(item)} />
         )}
       />
 
-      {/* Scroll to bottom button */}
       {showScrollBtn && (
         <Pressable
           onPress={scrollToBottom}
@@ -262,7 +357,6 @@ export function ChatScreen() {
         </Pressable>
       )}
 
-      {/* Input */}
       <View className="flex-row items-center gap-2 border-t border-gray-800 px-4 py-3">
         <TextInput
           className="flex-1 rounded-lg bg-gray-800 px-3 py-2 text-sm text-white"
@@ -281,7 +375,6 @@ export function ChatScreen() {
         </Pressable>
       </View>
 
-      {/* User card modal */}
       <Modal
         visible={!!selectedMsg}
         transparent

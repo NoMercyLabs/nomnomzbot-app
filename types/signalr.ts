@@ -1,15 +1,57 @@
 import type { Channel } from './channel'
 
+export interface ChatFragment {
+  type: 'text' | 'emote' | 'mention' | 'cheermote'
+  text: string
+  emote?: {
+    id: string
+    format: 'static' | 'animated'
+    setId: string
+    scale?: '1.0' | '2.0' | '3.0'
+  }
+  mention?: {
+    userId: string
+    username: string
+    displayName: string
+  }
+  cheermote?: {
+    prefix: string
+    bits: number
+    tier: number
+    color?: string
+  }
+}
+
+export interface ChatBadge {
+  setId: string
+  id: string
+  info?: string
+}
+
+export type ChatMessageType =
+  | 'text'
+  | 'channel_points_highlighted'
+  | 'channel_points_sub_only'
+  | 'user_intro'
+  | 'gigantified_emote'
+  | 'animated_message'
+
 export interface ChatMessagePayload {
+  id?: string
   channelId: string
   userId: string
   username: string
   displayName: string
   userType: 'viewer' | 'subscriber' | 'vip' | 'moderator' | 'broadcaster'
-  colorHex: string
+  /** Hex color from Twitch (e.g. "#FF0000") */
+  color: string
+  /** @deprecated Use color */
+  colorHex?: string
+  /** Plain-text fallback for the full message */
   message: string
-  badges: Array<{ setId: string; id: string; info?: string }>
-  fragments: Array<{ type: string; text: string; emote?: { id: string; format: string; setId: string } }>
+  badges: ChatBadge[]
+  fragments: ChatFragment[]
+  messageType: ChatMessageType
   isCommand: boolean
   isCheer: boolean
   bitsAmount?: number

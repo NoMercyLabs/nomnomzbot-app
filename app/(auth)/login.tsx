@@ -1,55 +1,66 @@
-import { View, Text, Pressable, Image } from 'react-native'
-import { useRouter } from 'expo-router'
+import { useState } from 'react'
+import { View, Text, Pressable, ActivityIndicator, Platform } from 'react-native'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { apiClient } from '@/lib/api/client'
-import * as WebBrowser from 'expo-web-browser'
-import { Platform } from 'react-native'
 
 export default function LoginScreen() {
-  const router = useRouter()
-  const setAuth = useAuthStore((s) => s.setAuth)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const login = useAuthStore((s) => s.login)
 
   async function handleTwitchLogin() {
     if (Platform.OS === 'web') {
-      // Web: redirect to backend OAuth endpoint
-      window.location.href = `${apiClient.defaults.baseURL?.replace('/api/v1', '') ?? ''}/auth/twitch`
-    } else {
-      // Native: open browser popup
-      const result = await WebBrowser.openAuthSessionAsync(
-        `${process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:5000'}/auth/twitch`,
-        'nomercybot://callback',
-      )
-      if (result.type === 'success' && result.url) {
-        const url = new URL(result.url)
-        const token = url.searchParams.get('token')
-        if (token) {
-          // Exchange short-lived token with backend
-          const res = await apiClient.post('/auth/exchange', { token })
-          setAuth(res.data)
-          router.replace('/(dashboard)')
-        }
-      }
+      const base = apiClient.defaults.baseURL?.replace(/\/api.*/, '') ?? ''
+      window.location.href = `${base}/auth/twitch`
+      return
+    }
+    setIsLoading(true)
+    setError(null)
+    try {
+      await login()
+    } catch {
+      setError('Failed to sign in with Twitch. Please try again.')
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
     <View className="w-full max-w-sm rounded-2xl bg-surface-raised p-8 items-center gap-6">
+      {/* Header */}
       <View className="items-center gap-2">
-        <Text className="text-3xl font-bold text-gray-100">NomercyBot</Text>
-        <Text className="text-gray-400 text-center">
+        <View className="h-16 w-16 rounded-2xl bg-accent-600 items-center justify-center mb-1">
+          <Text className="text-white text-3xl font-black">N</Text>
+        </View>
+        <Text className="text-2xl font-bold text-gray-100">NomercyBot</Text>
+        <Text className="text-gray-400 text-sm text-center">
           Sign in with Twitch to manage your stream bot
         </Text>
       </View>
 
+      {/* Error */}
+      {error && (
+        <View className="w-full rounded-xl bg-red-950 border border-red-800 px-4 py-3">
+          <Text className="text-red-400 text-sm text-center">{error}</Text>
+        </View>
+      )}
+
+      {/* Twitch login button */}
       <Pressable
         onPress={handleTwitchLogin}
-        className="w-full flex-row items-center justify-center gap-3 rounded-xl bg-[#9147ff] py-4 px-6 active:opacity-80"
+        disabled={isLoading}
+        className="w-full flex-row items-center justify-center gap-3 rounded-xl bg-[#9147ff] py-4 px-6 active:opacity-80 disabled:opacity-60"
       >
-        <Text className="text-white font-semibold text-base">Login with Twitch</Text>
+        {isLoading && <ActivityIndicator color="white" size="small" />}
+        <Text className="text-white font-semibold text-base">
+          {isLoading ? 'Signing in...' : 'Continue with Twitch'}
+        </Text>
       </Pressable>
 
-      <Text className="text-xs text-gray-500 text-center">
-        By signing in, you agree to our Terms of Service and Privacy Policy.
+      <Text className="text-xs text-gray-600 text-center leading-5">
+        By signing in you agree to our{' '}
+        <Text className="text-gray-500">Terms of Service</Text> and{' '}
+        <Text className="text-gray-500">Privacy Policy</Text>.
       </Text>
     </View>
   )

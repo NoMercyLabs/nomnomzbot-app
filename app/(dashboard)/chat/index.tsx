@@ -12,7 +12,8 @@ interface ChatMessage {
   userId: string
   displayName: string
   message: string
-  colorHex: string
+  color?: string
+  colorHex?: string
   timestamp: string
 }
 
@@ -54,7 +55,7 @@ export default function ChatScreen() {
         onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
         renderItem={({ item }) => (
           <View className="py-1 flex-row gap-2">
-            <Text style={{ color: item.colorHex || 'rgb(124,58,237)' }} className="font-semibold text-sm">
+            <Text style={{ color: item.color || item.colorHex || 'rgb(124,58,237)' }} className="font-semibold text-sm">
               {item.displayName}:
             </Text>
             <Text className="text-gray-200 text-sm flex-1">{item.message}</Text>
