@@ -27,10 +27,72 @@ apiClient.interceptors.request.use(
   (error) => Promise.reject(error),
 )
 
-// Response interceptor -- normalize errors
+// Track in-flight refresh to prevent concurrent refreshes
+let _isRefreshing = false
+let _refreshQueue: Array<(token: string) => void> = []
+
+function processRefreshQueue(token: string) {
+  _refreshQueue.forEach((cb) => cb(token))
+  _refreshQueue = []
+}
+
+// Response interceptor -- normalize errors + auto-refresh on 401
 apiClient.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<ApiError>) => {
+  async (error: AxiosError<ApiError>) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+
+      if (_isRefreshing) {
+        // Queue until the ongoing refresh completes
+        return new Promise((resolve, reject) => {
+          _refreshQueue.push((token) => {
+            if (originalRequest.headers) {
+              originalRequest.headers['Authorization'] = `Bearer ${token}`
+            }
+            resolve(apiClient(originalRequest))
+          })
+        })
+      }
+
+      _isRefreshing = true
+
+      try {
+        // Lazy-import to avoid circular dependency at module init time
+        const { useAuthStore } = await import('@/stores/useAuthStore')
+        await useAuthStore.getState().refreshToken()
+        const newToken = useAuthStore.getState().accessToken
+
+        if (!newToken) {
+          throw new Error('No token after refresh')
+        }
+
+        processRefreshQueue(newToken)
+
+        if (originalRequest.headers) {
+          originalRequest.headers['Authorization'] = `Bearer ${newToken}`
+        }
+
+        return apiClient(originalRequest)
+      } catch {
+        _refreshQueue = []
+
+        const { useAuthStore } = await import('@/stores/useAuthStore')
+        useAuthStore.getState().logout()
+
+        // Let upstream handle navigation (the app's root layout watches isAuthenticated)
+        const apiError: ApiError = {
+          message: 'Session expired. Please sign in again.',
+          status: 401,
+        }
+        return Promise.reject(apiError)
+      } finally {
+        _isRefreshing = false
+      }
+    }
+
     const message =
       error.response?.data?.message ??
       error.message ??

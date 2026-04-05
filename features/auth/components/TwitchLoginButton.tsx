@@ -1,16 +1,23 @@
 import { Pressable, Text, ActivityIndicator } from 'react-native'
-import { useTwitchOAuth } from '../hooks/useTwitchOAuth'
+import { Tv } from 'lucide-react-native'
 
-export function TwitchLoginButton() {
-  const { login, isLoading } = useTwitchOAuth()
+interface TwitchLoginButtonProps {
+  onPress: () => void
+  isLoading?: boolean
+}
 
+export function TwitchLoginButton({ onPress, isLoading = false }: TwitchLoginButtonProps) {
   return (
     <Pressable
-      onPress={login}
+      onPress={onPress}
       disabled={isLoading}
-      className="flex-row items-center justify-center gap-3 rounded-xl bg-[#9147ff] py-4 px-6 active:opacity-80 disabled:opacity-50"
+      className="w-full flex-row items-center justify-center gap-3 rounded-xl bg-[#9147ff] py-4 px-6 active:opacity-80 disabled:opacity-50"
     >
-      {isLoading && <ActivityIndicator size="small" color="white" />}
+      {isLoading ? (
+        <ActivityIndicator size="small" color="white" />
+      ) : (
+        <Tv size={20} color="white" strokeWidth={2} />
+      )}
       <Text className="text-white font-semibold text-base">
         {isLoading ? 'Connecting...' : 'Login with Twitch'}
       </Text>
