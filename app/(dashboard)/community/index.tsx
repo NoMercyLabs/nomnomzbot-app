@@ -1,11 +1,5 @@
-import { ScrollView, View } from 'react-native'
-import { PageHeader } from '@/components/layout/PageHeader'
+import { CommunityScreen } from '@/features/community/screens/CommunityScreen'
 
-export default function CommunityScreen() {
-  return (
-    <ScrollView className="flex-1 bg-surface">
-      <PageHeader title="Community" />
-      <View className="px-6 py-4" />
-    </ScrollView>
-  )
+export default function CommunityRoute() {
+  return <CommunityScreen />
 }
