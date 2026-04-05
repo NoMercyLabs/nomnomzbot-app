@@ -102,6 +102,7 @@ export default function DashboardLayout() {
       <Tabs.Screen name="billing" options={{ href: null }} />
       <Tabs.Screen name="timers" options={{ href: null }} />
       <Tabs.Screen name="my-data" options={{ href: null }} />
+      <Tabs.Screen name="event-responses" options={{ href: null }} />
     </Tabs>
   )
 }

@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Terminal, MessageSquare, Music, Clock,
   Users, Shield, Gift, Layers, Radio,
   Puzzle, Link, Key, Settings,
-  CreditCard, Database,
+  CreditCard, Database, Zap,
   ChevronLeft, ChevronRight,
   type LucideIcon,
 } from 'lucide-react-native'
@@ -47,6 +47,7 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Config',
     items: [
       { label: 'Pipelines', href: '/(dashboard)/pipelines', Icon: Puzzle },
+      { label: 'Event Responses', href: '/(dashboard)/event-responses', Icon: Zap },
       { label: 'Integrations', href: '/(dashboard)/integrations', Icon: Link },
       { label: 'Permissions', href: '/(dashboard)/permissions', Icon: Key },
       { label: 'Settings', href: '/(dashboard)/settings', Icon: Settings },
