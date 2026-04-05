@@ -26,6 +26,8 @@ async function importNamespace(
       moderation: () => import('@/locales/en/moderation.json'),
       music: () => import('@/locales/en/music.json'),
       settings: () => import('@/locales/en/settings.json'),
+      chat: () => import('@/locales/en/chat.json'),
+      rewards: () => import('@/locales/en/rewards.json'),
     },
     nl: {
       common: () => import('@/locales/nl/common.json'),
@@ -35,6 +37,8 @@ async function importNamespace(
       moderation: () => import('@/locales/nl/moderation.json'),
       music: () => import('@/locales/nl/music.json'),
       settings: () => import('@/locales/nl/settings.json'),
+      chat: () => import('@/locales/nl/chat.json'),
+      rewards: () => import('@/locales/nl/rewards.json'),
     },
     de: {
       common: () => import('@/locales/de/common.json'),
@@ -44,6 +48,8 @@ async function importNamespace(
       moderation: () => import('@/locales/de/moderation.json'),
       music: () => import('@/locales/de/music.json'),
       settings: () => import('@/locales/de/settings.json'),
+      chat: () => import('@/locales/de/chat.json'),
+      rewards: () => import('@/locales/de/rewards.json'),
     },
   }
 

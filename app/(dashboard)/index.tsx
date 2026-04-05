@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api/client'
 import { useChannelStore } from '@/stores/useChannelStore'
 import { useActivityFeed } from '@/features/dashboard/hooks/useActivityFeed'
+import { useFeatureTranslation } from '@/hooks/useFeatureTranslation'
+import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
@@ -17,10 +19,10 @@ import {
 import type { DashboardStats, ActivityEvent } from '@/features/dashboard/types'
 
 const QUICK_ACTIONS = [
-  { label: 'Commands', href: '/(dashboard)/commands', icon: Terminal, color: '#a855f7' },
-  { label: 'Timers', href: '/(dashboard)/timers', icon: Clock, color: '#3b82f6' },
-  { label: 'Chat', href: '/(dashboard)/chat', icon: MessageSquare, color: '#10b981' },
-  { label: 'Pipelines', href: '/(dashboard)/pipelines', icon: Zap, color: '#f59e0b' },
+  { labelKey: 'nav.commands', href: '/(dashboard)/commands', icon: Terminal, color: '#a855f7' },
+  { labelKey: 'nav.timers', href: '/(dashboard)/timers', icon: Clock, color: '#3b82f6' },
+  { labelKey: 'nav.chat', href: '/(dashboard)/chat', icon: MessageSquare, color: '#10b981' },
+  { labelKey: 'nav.pipelines', href: '/(dashboard)/pipelines', icon: Zap, color: '#f59e0b' },
 ]
 
 const EVENT_ICONS: Record<ActivityEvent['type'], typeof Heart> = {
@@ -41,19 +43,23 @@ const EVENT_COLORS: Record<ActivityEvent['type'], string> = {
   redemption: '#06b6d4',
 }
 
-const EVENT_LABELS: Record<ActivityEvent['type'], string> = {
+type EventLabelKey = 'followed' | 'subscribed' | 'raided' | 'cheered' | 'usedCommand' | 'redeemedReward'
+
+const EVENT_LABEL_KEYS: Record<ActivityEvent['type'], EventLabelKey> = {
   follow: 'followed',
   subscribe: 'subscribed',
   raid: 'raided',
   cheer: 'cheered',
-  command: 'used a command',
-  redemption: 'redeemed a reward',
+  command: 'usedCommand',
+  redemption: 'redeemedReward',
 }
 
 export default function DashboardScreen() {
   const { currentChannel } = useChannel()
   const broadcasterId = useChannelStore((s) => s.currentChannel?.broadcasterId)
   const { events } = useActivityFeed()
+  const { t: tCommon } = useTranslation('common')
+  const { t } = useFeatureTranslation('dashboard')
 
   const { data: stats, isLoading } = useQuery<DashboardStats>({
     queryKey: ['dashboard', 'stats', broadcasterId],
@@ -65,13 +71,13 @@ export default function DashboardScreen() {
   return (
     <ScrollView className="flex-1 bg-gray-950" contentContainerClassName="pb-8">
       <PageHeader
-        title={currentChannel?.displayName ?? 'Dashboard'}
+        title={currentChannel?.displayName ?? t('title')}
         subtitle={stats?.streamTitle}
         rightContent={
           stats?.isLive ? (
-            <Badge variant="danger" label="LIVE" />
+            <Badge variant="danger" label={tCommon('status.live')} />
           ) : (
-            <Badge variant="muted" label="Offline" />
+            <Badge variant="muted" label={t('stream.offline')} />
           )
         }
       />
@@ -81,12 +87,12 @@ export default function DashboardScreen() {
         {stats?.gameName && (
           <Card className="flex-row items-center gap-3 py-3">
             <View className="flex-1">
-              <Text className="text-xs text-gray-500">Playing</Text>
+              <Text className="text-xs text-gray-500">{t('stream.playing')}</Text>
               <Text className="text-sm font-medium text-gray-200">{stats.gameName}</Text>
             </View>
             {stats.uptime != null && (
               <View className="items-end">
-                <Text className="text-xs text-gray-500">Uptime</Text>
+                <Text className="text-xs text-gray-500">{t('stream.uptime')}</Text>
                 <Text className="text-sm font-medium text-gray-200">
                   {Math.floor(stats.uptime / 3600)}h {Math.floor((stats.uptime % 3600) / 60)}m
                 </Text>
@@ -106,25 +112,25 @@ export default function DashboardScreen() {
           <View className="flex-row flex-wrap gap-3">
             <StatCard
               icon={<Users size={18} color="#a855f7" />}
-              label="Viewers"
+              label={t('stats.viewers')}
               value={formatNumber(stats?.viewerCount ?? 0)}
               accent="#a855f7"
             />
             <StatCard
               icon={<UserPlus size={18} color="#3b82f6" />}
-              label="Followers"
+              label={t('stats.followers')}
               value={formatNumber(stats?.followerCount ?? 0)}
               accent="#3b82f6"
             />
             <StatCard
               icon={<Terminal size={18} color="#10b981" />}
-              label="Commands"
+              label={t('stats.commands')}
               value={formatNumber(stats?.commandsUsed ?? 0)}
               accent="#10b981"
             />
             <StatCard
               icon={<MessageSquare size={18} color="#f59e0b" />}
-              label="Messages"
+              label={t('stats.messages')}
               value={formatNumber(stats?.messagesCount ?? 0)}
               accent="#f59e0b"
             />
@@ -133,7 +139,9 @@ export default function DashboardScreen() {
 
         {/* Quick actions */}
         <View className="gap-2">
-          <Text className="text-xs font-semibold uppercase text-gray-500 px-1">Quick Access</Text>
+          <Text className="text-xs font-semibold uppercase text-gray-500 px-1">
+            {t('quickAccess.title')}
+          </Text>
           <View className="flex-row flex-wrap gap-3">
             {QUICK_ACTIONS.map((action) => {
               const Icon = action.icon
@@ -150,7 +158,9 @@ export default function DashboardScreen() {
                     >
                       <Icon size={18} color={action.color} />
                     </View>
-                    <Text className="flex-1 text-sm font-medium text-gray-200">{action.label}</Text>
+                    <Text className="flex-1 text-sm font-medium text-gray-200">
+                      {tCommon(action.labelKey as any)}
+                    </Text>
                     <ChevronRight size={14} color="#5a5b72" />
                   </Card>
                 </Pressable>
@@ -161,20 +171,25 @@ export default function DashboardScreen() {
 
         {/* Recent activity */}
         <View className="gap-2">
-          <Text className="text-xs font-semibold uppercase text-gray-500 px-1">Recent Activity</Text>
+          <Text className="text-xs font-semibold uppercase text-gray-500 px-1">
+            {t('activityFeed.title')}
+          </Text>
           <Card className="gap-0 p-0 overflow-hidden">
             {events.length === 0 ? (
               <View className="items-center py-8">
-                <Text className="text-sm text-gray-600">No recent activity</Text>
+                <Text className="text-sm text-gray-600">{t('activityFeed.empty')}</Text>
                 <Text className="text-xs text-gray-700 mt-1">
-                  Events will appear here when your stream is live
+                  {t('activityFeed.liveOnly')}
                 </Text>
               </View>
             ) : (
               events.slice(0, 10).map((event, index) => {
                 const Icon = EVENT_ICONS[event.type] ?? Zap
                 const color = EVENT_COLORS[event.type] ?? '#6b7280'
-                const label = EVENT_LABELS[event.type] ?? event.type
+                const labelKey = EVENT_LABEL_KEYS[event.type]
+                const label = labelKey
+                  ? t(`activityFeed.events.${labelKey}` as any)
+                  : event.type
                 return (
                   <View
                     key={event.id}

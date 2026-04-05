@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
-import { View, Text, ActivityIndicator, Pressable } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import { useRouter, useLocalSearchParams } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 export default function CallbackScreen() {
   const router = useRouter()
+  const { t } = useTranslation('common')
   const params = useLocalSearchParams<{
     code?: string
     state?: string
@@ -21,7 +24,6 @@ export default function CallbackScreen() {
 
   useEffect(() => {
     async function processCallback() {
-      // OAuth provider returned an error
       if (params.error) {
         const desc = params.error_description
           ? decodeURIComponent(params.error_description.replace(/\+/g, ' '))
@@ -76,9 +78,12 @@ export default function CallbackScreen() {
   }
 
   return (
-    <View className="flex-1 items-center justify-center bg-surface gap-4">
-      <ActivityIndicator size="large" color="#9147ff" />
-      <Text className="text-gray-400">Signing you in...</Text>
+    <View className="flex-1 items-center justify-center bg-surface gap-6">
+      <View className="gap-3 items-center">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <Skeleton className="h-4 w-40 rounded-lg" />
+      </View>
+      <Text className="text-gray-400 text-sm">{t('auth.signingIn', 'Signing you in...')}</Text>
     </View>
   )
 }

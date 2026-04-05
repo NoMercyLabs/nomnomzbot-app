@@ -1,20 +1,40 @@
 {
   "title": "Dashboard",
-  "overview": "Overview",
+  "overview": "Übersicht",
+  "stream": {
+    "playing": "Spielt gerade",
+    "uptime": "Laufzeit",
+    "offline": "Offline"
+  },
   "stats": {
-    "viewers": "Viewers",
-    "chatMessages": "Chat Messages",
-    "commandsUsed": "Commands Used",
-    "activeCommands": "Active Commands"
+    "viewers": "Zuschauer",
+    "followers": "Follower",
+    "commands": "Befehle",
+    "messages": "Nachrichten",
+    "chatMessages": "Chatnachrichten",
+    "commandsUsed": "Verwendete Befehle",
+    "activeCommands": "Aktive Befehle"
+  },
+  "quickAccess": {
+    "title": "Schnellzugriff"
   },
   "activityFeed": {
-    "title": "Recent Activity",
-    "empty": "No recent activity"
+    "title": "Letzte Aktivität",
+    "empty": "Keine letzte Aktivität",
+    "liveOnly": "Ereignisse erscheinen hier wenn dein Stream live ist",
+    "events": {
+      "followed": "folgte",
+      "subscribed": "abonnierte",
+      "raided": "raidete",
+      "cheered": "jubelte",
+      "usedCommand": "verwendete einen Befehl",
+      "redeemedReward": "löste eine Belohnung ein"
+    }
   },
   "quickActions": {
-    "title": "Quick Actions",
-    "sendMessage": "Send Message",
-    "skipSong": "Skip Song",
-    "toggleShieldMode": "Toggle Shield Mode"
+    "title": "Schnellaktionen",
+    "sendMessage": "Nachricht senden",
+    "skipSong": "Lied überspringen",
+    "toggleShieldMode": "Schildmodus umschalten"
   }
 }

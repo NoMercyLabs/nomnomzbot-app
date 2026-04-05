@@ -1,9 +1,11 @@
-import { View, Text, Image } from 'react-native'
+import { View, Text } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { TwitchLoginButton } from '@/features/auth/components/TwitchLoginButton'
 import { useTwitchOAuth } from '@/features/auth/hooks/useTwitchOAuth'
 
 export default function LoginScreen() {
   const { login, isLoading, error } = useTwitchOAuth()
+  const { t } = useTranslation('common')
 
   return (
     <View className="flex-1 items-center justify-center bg-surface px-6">
@@ -15,7 +17,7 @@ export default function LoginScreen() {
           </View>
           <Text className="text-3xl font-bold text-gray-100 tracking-tight">NomercyBot</Text>
           <Text className="text-gray-400 text-center text-base leading-relaxed">
-            Your all-in-one Twitch stream bot.{'\n'}Automate, moderate, and engage.
+            {t('auth.loginSubtitle', 'Your all-in-one Twitch stream bot.\nAutomate, moderate, and engage.')}
           </Text>
         </View>
 
@@ -32,7 +34,7 @@ export default function LoginScreen() {
 
         {/* Footer */}
         <Text className="text-xs text-gray-600 text-center">
-          By signing in, you agree to our Terms of Service and Privacy Policy.
+          {t('auth.termsPrivacy', 'By signing in, you agree to our Terms of Service and Privacy Policy.')}
         </Text>
       </View>
     </View>
