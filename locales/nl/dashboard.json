@@ -1,20 +1,40 @@
 {
   "title": "Dashboard",
-  "overview": "Overview",
+  "overview": "Overzicht",
+  "stream": {
+    "playing": "Speelt nu",
+    "uptime": "Uptime",
+    "offline": "Offline"
+  },
   "stats": {
-    "viewers": "Viewers",
-    "chatMessages": "Chat Messages",
-    "commandsUsed": "Commands Used",
-    "activeCommands": "Active Commands"
+    "viewers": "Kijkers",
+    "followers": "Volgers",
+    "commands": "Commando's",
+    "messages": "Berichten",
+    "chatMessages": "Chatberichten",
+    "commandsUsed": "Gebruikte commando's",
+    "activeCommands": "Actieve commando's"
+  },
+  "quickAccess": {
+    "title": "Snelle toegang"
   },
   "activityFeed": {
-    "title": "Recent Activity",
-    "empty": "No recent activity"
+    "title": "Recente activiteit",
+    "empty": "Geen recente activiteit",
+    "liveOnly": "Evenementen verschijnen hier wanneer je stream live is",
+    "events": {
+      "followed": "volgde",
+      "subscribed": "abonneerde",
+      "raided": "raidde",
+      "cheered": "juichte",
+      "usedCommand": "gebruikte een commando",
+      "redeemedReward": "verloste een beloning"
+    }
   },
   "quickActions": {
-    "title": "Quick Actions",
-    "sendMessage": "Send Message",
-    "skipSong": "Skip Song",
-    "toggleShieldMode": "Toggle Shield Mode"
+    "title": "Snelle acties",
+    "sendMessage": "Stuur bericht",
+    "skipSong": "Sla nummer over",
+    "toggleShieldMode": "Schakel schildmodus"
   }
 }

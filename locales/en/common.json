@@ -14,6 +14,7 @@
     "integrations": "Integrations",
     "permissions": "Permissions",
     "settings": "Settings",
+    "timers": "Timers",
     "billing": "Billing",
     "myData": "My Data"
   },
@@ -45,6 +46,17 @@
   "auth": {
     "login": "Log in with Twitch",
     "logout": "Log out",
-    "loginRequired": "Please log in to continue"
+    "loginRequired": "Please log in to continue",
+    "loginSubtitle": "Sign in with Twitch to manage your stream bot",
+    "signingIn": "Signing you in...",
+    "welcome": "Welcome!",
+    "setupDescription": "Let's get your bot set up. We'll load your channel automatically.",
+    "continue": "Continue",
+    "termsPrivacy": "By signing in, you agree to our Terms of Service and Privacy Policy."
+  },
+  "errors": {
+    "notFound": "404",
+    "notFoundMessage": "This screen doesn't exist.",
+    "goHome": "Go home"
   }
 }

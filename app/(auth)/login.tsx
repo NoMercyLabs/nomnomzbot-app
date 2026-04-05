@@ -1,5 +1,6 @@
-import { View, Text, Pressable, Image } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
+import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { apiClient } from '@/lib/api/client'
 import * as WebBrowser from 'expo-web-browser'
@@ -7,6 +8,7 @@ import { Platform } from 'react-native'
 
 export default function LoginScreen() {
   const router = useRouter()
+  const { t } = useTranslation('common')
   const setAuth = useAuthStore((s) => s.setAuth)
 
   async function handleTwitchLogin() {
@@ -37,19 +39,21 @@ export default function LoginScreen() {
       <View className="items-center gap-2">
         <Text className="text-3xl font-bold text-gray-100">NomercyBot</Text>
         <Text className="text-gray-400 text-center">
-          Sign in with Twitch to manage your stream bot
+          {t('auth.loginSubtitle')}
         </Text>
       </View>
 
       <Pressable
         onPress={handleTwitchLogin}
         className="w-full flex-row items-center justify-center gap-3 rounded-xl bg-[#9147ff] py-4 px-6 active:opacity-80"
+        accessibilityLabel={t('auth.login')}
+        accessibilityRole="button"
       >
-        <Text className="text-white font-semibold text-base">Login with Twitch</Text>
+        <Text className="text-white font-semibold text-base">{t('auth.login')}</Text>
       </Pressable>
 
       <Text className="text-xs text-gray-500 text-center">
-        By signing in, you agree to our Terms of Service and Privacy Policy.
+        {t('auth.termsPrivacy')}
       </Text>
     </View>
   )

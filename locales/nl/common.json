@@ -14,6 +14,7 @@
     "integrations": "Integraties",
     "permissions": "Rechten",
     "settings": "Instellingen",
+    "timers": "Timers",
     "billing": "Facturering",
     "myData": "Mijn Gegevens"
   },
@@ -45,6 +46,17 @@
   "auth": {
     "login": "Inloggen met Twitch",
     "logout": "Uitloggen",
-    "loginRequired": "Log in om door te gaan"
+    "loginRequired": "Log in om door te gaan",
+    "loginSubtitle": "Log in met Twitch om je stream bot te beheren",
+    "signingIn": "Je wordt ingelogd...",
+    "welcome": "Welkom!",
+    "setupDescription": "We zetten je bot op. We laden je kanaal automatisch.",
+    "continue": "Doorgaan",
+    "termsPrivacy": "Door in te loggen ga je akkoord met onze Servicevoorwaarden en Privacybeleid."
+  },
+  "errors": {
+    "notFound": "404",
+    "notFoundMessage": "Dit scherm bestaat niet.",
+    "goHome": "Ga naar huis"
   }
 }
