@@ -1,7 +1,7 @@
 import { View, Text, Pressable, Modal, ScrollView } from 'react-native'
 import { useState } from 'react'
 import { Plus, Save, ChevronRight, X } from 'lucide-react-native'
-import { NODE_REGISTRY } from '../nodes/registry'
+import { NODE_REGISTRY } from './nodeRegistry'
 import type { PipelineNode } from '@/types/pipeline'
 import type { NodeCategory } from '@/types/pipeline'
 

@@ -1,7 +1,7 @@
 import { apiClient } from '@/lib/api/client'
 import type { Pipeline, PipelineListItem } from '@/types/pipeline'
 import type { PaginatedResponse } from '@/lib/api/types'
-import type { PipelineTestResult } from './types'
+import type { PipelineTestResult } from '@/types/pipeline'
 
 export async function fetchPipelines(channelId: string) {
   const res = await apiClient.get<PaginatedResponse<PipelineListItem>>(

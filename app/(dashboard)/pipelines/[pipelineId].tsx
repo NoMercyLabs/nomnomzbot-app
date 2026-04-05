@@ -16,8 +16,10 @@ export default function PipelineEditorScreen() {
   const isNew = pipelineId === 'new'
   const numericId = isNew ? null : parseInt(pipelineId, 10)
 
+  const queryKey = `pipelines/${pipelineId}`
+
   const { data: pipeline } = useApiQuery<Pipeline>(
-    `pipelines/${pipelineId}`,
+    queryKey,
     `/pipelines/${pipelineId}`,
     { enabled: !isNew && numericId !== null && !isNaN(numericId) },
   )
@@ -30,7 +32,7 @@ export default function PipelineEditorScreen() {
     } else if (numericId !== null) {
       await updatePipeline(channelId, numericId, updated)
       queryClient.invalidateQueries({ queryKey: ['channel', channelId, 'pipelines'] })
-      queryClient.invalidateQueries({ queryKey: ['channel', channelId, `pipelines/${pipelineId}`] })
+      queryClient.invalidateQueries({ queryKey: ['channel', channelId, queryKey] })
     }
   }
 
