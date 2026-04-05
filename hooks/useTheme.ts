@@ -1,14 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  type ReactNode,
-} from 'react'
-import { Platform } from 'react-native'
-import { useThemeStore } from '@/stores/useThemeStore'
-import { useAuthStore } from '@/stores/useAuthStore'
-import { hexToRgbPalette } from '@/lib/theme/colors'
+import { createContext, useContext } from 'react'
 
 interface ThemeContextValue {
   isDark: boolean
@@ -26,3 +16,6 @@ export function useTheme(): ThemeContextValue {
   if (!ctx) throw new Error('useTheme must be used within ThemeProvider')
   return ctx
 }
+
+// Re-export ThemeProvider for convenience
+export { ThemeProvider } from '@/components/providers/ThemeProvider'

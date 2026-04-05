@@ -1,5 +1,7 @@
 export interface Channel {
   id: string
+  /** Twitch broadcaster ID — alias for twitchId */
+  broadcasterId: string
   twitchId: string
   login: string
   displayName: string
