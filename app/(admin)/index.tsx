@@ -14,8 +14,14 @@ interface AdminStats {
   activeChannels: number
   totalUsers: number
   systemStatus: 'healthy' | 'degraded' | 'down'
-  botUptime: number
+  botUptimeSeconds: number
   eventsProcessedToday: number
+}
+
+function formatUptime(seconds: number): string {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  return `${h}h ${m.toString().padStart(2, '0')}m`
 }
 
 function StatCard({ label, value, icon, color }: {
@@ -104,6 +110,12 @@ export default function AdminDashboardScreen() {
                 value={(data?.eventsProcessedToday ?? 0).toLocaleString()}
                 icon={<Server size={16} color="rgb(245,158,11)" />}
                 color="text-amber-300"
+              />
+              <StatCard
+                label="Bot Uptime"
+                value={data?.botUptimeSeconds != null ? formatUptime(data.botUptimeSeconds) : '—'}
+                icon={<Activity size={16} color="rgb(16,185,129)" />}
+                color="text-green-300"
               />
             </View>
 

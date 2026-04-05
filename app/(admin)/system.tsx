@@ -13,15 +13,12 @@ interface ServiceHealth {
   name: string
   status: 'up' | 'degraded' | 'down'
   latencyMs: number | null
-  uptime: number | null
-  lastChecked: string
 }
 
 interface SystemHealth {
   overall: 'healthy' | 'degraded' | 'down'
   services: ServiceHealth[]
   botVersion: string
-  nodeVersion: string
   memoryUsageMb: number | null
   cpuPercent: number | null
 }
@@ -85,7 +82,7 @@ export default function AdminSystemScreen() {
                 <Text className="text-base font-semibold text-gray-100">Overall Status</Text>
                 {data?.botVersion && (
                   <Text className="text-xs text-gray-500">
-                    v{data.botVersion} · Node {data.nodeVersion}
+                    v{data.botVersion}
                   </Text>
                 )}
               </View>

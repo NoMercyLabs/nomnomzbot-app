@@ -1,12 +1,11 @@
-import { useState } from 'react'
-import { View, Text, ScrollView, Alert, RefreshControl } from 'react-native'
+import { View, Text, ScrollView, Alert, RefreshControl, Platform } from 'react-native'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api/client'
+import { useAuth } from '@/hooks/useAuth'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
-import { Badge } from '@/components/ui/Badge'
 import {
   MessageSquare,
   Clock,
@@ -14,7 +13,6 @@ import {
   Terminal,
   Download,
   Trash2,
-  Database,
 } from 'lucide-react-native'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
 
@@ -23,14 +21,9 @@ interface MyData {
   watchHours: number
   channelsCount: number
   commandsUsed: number
-  firstSeen: string
-  lastActive: string
+  firstSeen: string | null
+  lastActive: string | null
   exportAvailable: boolean
-}
-
-interface ExportResponse {
-  downloadUrl: string
-  expiresAt: string
 }
 
 function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
@@ -44,37 +37,44 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 }
 
 export function MyDataScreen() {
-  const [exportUrl, setExportUrl] = useState<string | null>(null)
+  const { user } = useAuth()
 
   const { data, isLoading, isRefetching, refetch } = useQuery<MyData>({
     queryKey: ['me', 'data'],
+    enabled: !!user?.id,
     queryFn: async () => {
-      const res = await apiClient.get<{ data: MyData }>('/v1/me/data')
+      const res = await apiClient.get<{ data: MyData }>(`/v1/users/${user!.id}/stats`)
       return res.data.data
     },
   })
 
-  const exportMutation = useMutation<ExportResponse, Error>({
+  const exportMutation = useMutation<void, Error>({
     mutationFn: async () => {
-      const res = await apiClient.post<{ data: ExportResponse }>('/v1/me/data/export')
-      return res.data.data
+      if (Platform.OS === 'web') {
+        const res = await apiClient.get(`/v1/users/${user!.id}/data-export`, {
+          responseType: 'blob',
+        })
+        const url = URL.createObjectURL(res.data as Blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = 'user-data-export.json'
+        a.click()
+        URL.revokeObjectURL(url)
+      } else {
+        throw new Error('Please use the web app to download your data export.')
+      }
     },
-    onSuccess: (result) => {
-      setExportUrl(result.downloadUrl)
-      Alert.alert(
-        'Export Ready',
-        'Your data export is ready. The download link is valid for 24 hours.',
-        [{ text: 'OK' }],
-      )
+    onSuccess: () => {
+      Alert.alert('Export Started', 'Your data is downloading.')
     },
-    onError: () => {
-      Alert.alert('Export Failed', 'Could not generate data export. Please try again.')
+    onError: (e) => {
+      Alert.alert('Export', e.message || 'Export failed.')
     },
   })
 
   const deleteMutation = useMutation<void, Error>({
     mutationFn: async () => {
-      await apiClient.delete('/v1/me/data')
+      await apiClient.delete(`/v1/users/${user!.id}/data`)
     },
     onSuccess: () => {
       Alert.alert('Data Deleted', 'Your data has been deleted from our systems.')
@@ -174,13 +174,8 @@ export function MyDataScreen() {
               <View className="px-4 py-4 gap-3">
                 <Text className="text-sm text-gray-400">
                   Download a copy of all your data, including message history, watch time, and
-                  account information. The export link is valid for 24 hours.
+                  account information.
                 </Text>
-                {exportUrl && (
-                  <View className="bg-green-950 border border-green-800 rounded-lg px-3 py-2">
-                    <Text className="text-xs text-green-400">Export ready — link sent to your account email.</Text>
-                  </View>
-                )}
                 <Button
                   label="Request Data Export"
                   variant="secondary"
