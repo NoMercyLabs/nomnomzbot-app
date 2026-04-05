@@ -10,11 +10,14 @@ interface AuthState {
   refreshTokenValue: string | null
   expiresAt: number | null
   isLoading: boolean
+
   isAuthenticated: () => boolean
   isTokenExpiringSoon: () => boolean
+
   setAuth: (data: { user: User; accessToken: string; refreshToken: string; expiresIn: number }) => void
   refreshToken: () => Promise<void>
   logout: () => void
+  setLoading: (loading: boolean) => void
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -57,7 +60,7 @@ export const useAuthStore = create<AuthState>()(
             accessToken: string
             refreshToken: string
             expiresIn: number
-          }>('/api/v1/auth/refresh', { refreshToken: refreshTokenValue })
+          }>('/v1/auth/refresh', { refreshToken: refreshTokenValue })
 
           set({
             accessToken: res.data.accessToken,
@@ -73,9 +76,16 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        set({ user: null, accessToken: null, refreshTokenValue: null, expiresAt: null })
+        set({
+          user: null,
+          accessToken: null,
+          refreshTokenValue: null,
+          expiresAt: null,
+        })
         delete apiClient.defaults.headers.common['Authorization']
       },
+
+      setLoading: (loading) => set({ isLoading: loading }),
     }),
     {
       name: 'nomercybot-auth',
@@ -86,6 +96,6 @@ export const useAuthStore = create<AuthState>()(
         refreshTokenValue: state.refreshTokenValue,
         expiresAt: state.expiresAt,
       }),
-    },
+    } as any,
   ),
 )

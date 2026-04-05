@@ -2,8 +2,8 @@ export function hexToRgbPalette(hex: string): Record<string, string> {
   const { h, s, l } = hexToHsl(hex)
 
   const shades: Record<string, number> = {
-    50: 97, 100: 94, 200: 86, 300: 76, 400: 64,
-    500: 50, 600: 42, 700: 34, 800: 26, 900: 20, 950: 14,
+    '50': 97, '100': 94, '200': 86, '300': 76, '400': 64,
+    '500': 50, '600': 42, '700': 34, '800': 26, '900': 20, '950': 14,
   }
 
   const palette: Record<string, string> = {}

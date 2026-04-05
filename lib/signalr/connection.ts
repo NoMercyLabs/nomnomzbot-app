@@ -5,16 +5,16 @@ import {
   LogLevel,
 } from '@microsoft/signalr'
 import { Platform } from 'react-native'
-import { SIGNALR_HUB_URL } from '@/lib/utils/constants'
 
 let connection: HubConnection | null = null
 let refCount = 0
 
 export function getSignalRConnection(accessToken: string): HubConnection {
   if (!connection) {
-    const baseUrl = Platform.OS === 'web'
-      ? '/hubs/dashboard'
-      : SIGNALR_HUB_URL
+    const baseUrl =
+      Platform.OS === 'web'
+        ? '/hubs/dashboard'
+        : `${process.env.EXPO_PUBLIC_API_URL}/hubs/dashboard`
 
     connection = new HubConnectionBuilder()
       .withUrl(baseUrl, {
@@ -22,21 +22,30 @@ export function getSignalRConnection(accessToken: string): HubConnection {
       })
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: (retryContext) => {
-          if (retryContext.elapsedMilliseconds > 120000) return null
-          return Math.min(1000 * Math.pow(2, retryContext.previousRetryCount), 30000)
+          if (retryContext.elapsedMilliseconds > 120_000) return null
+          return Math.min(1000 * Math.pow(2, retryContext.previousRetryCount), 30_000)
         },
       })
       .configureLogging(__DEV__ ? LogLevel.Information : LogLevel.Warning)
       .build()
   }
+
   return connection
 }
 
-export function incrementRefCount() { refCount++ }
-export function decrementRefCount() { refCount-- }
-export function getRefCount() { return refCount }
+export function incrementRefCount(): void {
+  refCount++
+}
 
-export async function destroyConnection() {
+export function decrementRefCount(): void {
+  refCount = Math.max(0, refCount - 1)
+}
+
+export function getRefCount(): number {
+  return refCount
+}
+
+export async function destroyConnection(): Promise<void> {
   if (connection) {
     await connection.stop()
     connection = null

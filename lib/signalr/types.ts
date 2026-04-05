@@ -1,3 +1,6 @@
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'reconnecting'
 
-export type { SignalREventMap, SignalRHubMethods } from '@/types/signalr'
+export interface SignalRConfig {
+  hubUrl: string
+  accessToken: string
+}

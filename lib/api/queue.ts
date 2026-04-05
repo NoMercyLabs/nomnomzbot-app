@@ -1,32 +1,35 @@
+import type { AxiosRequestConfig } from 'axios'
 import { apiClient } from './client'
-import type { ApiResponse } from './types'
 
 interface QueuedRequest {
+  config: AxiosRequestConfig
   resolve: (value: unknown) => void
   reject: (error: unknown) => void
-  fn: () => Promise<unknown>
 }
 
 const queue: QueuedRequest[] = []
 let isProcessing = false
 
-export async function enqueue<T>(fn: () => Promise<T>): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    queue.push({ resolve: resolve as (v: unknown) => void, reject, fn })
-    if (!isProcessing) processQueue()
+export async function enqueueRequest<T>(config: AxiosRequestConfig): Promise<T> {
+  return new Promise((resolve, reject) => {
+    queue.push({ config, resolve: resolve as (v: unknown) => void, reject })
+    processQueue()
   })
 }
 
 async function processQueue() {
+  if (isProcessing || queue.length === 0) return
   isProcessing = true
+
   while (queue.length > 0) {
     const item = queue.shift()!
     try {
-      const result = await item.fn()
-      item.resolve(result)
-    } catch (err) {
-      item.reject(err)
+      const response = await apiClient.request(item.config)
+      item.resolve(response.data)
+    } catch (error) {
+      item.reject(error)
     }
   }
+
   isProcessing = false
 }

@@ -1,17 +1,50 @@
 {
-  "app_name": "NomercyBot",
-  "loading": "Loading...",
-  "error": "Something went wrong",
-  "save": "Save",
-  "cancel": "Cancel",
-  "delete": "Delete",
-  "edit": "Edit",
-  "create": "Create",
-  "back": "Back",
-  "confirm": "Confirm",
-  "yes": "Yes",
-  "no": "No",
-  "search": "Search...",
-  "empty": "No items found",
-  "retry": "Try again"
+  "app": { "name": "NoMercy Bot" },
+  "nav": {
+    "dashboard": "Dashboard",
+    "commands": "Commands",
+    "rewards": "Rewards",
+    "chat": "Chat",
+    "moderation": "Moderation",
+    "music": "Music",
+    "stream": "Stream Info",
+    "community": "Community",
+    "widgets": "Widgets",
+    "pipelines": "Pipelines",
+    "integrations": "Integrations",
+    "permissions": "Permissions",
+    "settings": "Settings",
+    "billing": "Billing",
+    "myData": "My Data"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "confirm": "Confirm",
+    "back": "Back",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "copy": "Copy",
+    "close": "Close"
+  },
+  "status": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "error": "Something went wrong",
+    "success": "Saved successfully",
+    "noResults": "No results found",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "reconnecting": "Reconnecting...",
+    "live": "LIVE"
+  },
+  "auth": {
+    "login": "Log in with Twitch",
+    "logout": "Log out",
+    "loginRequired": "Please log in to continue"
+  }
 }
