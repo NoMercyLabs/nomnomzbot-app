@@ -72,7 +72,7 @@ export default function DashboardLayout() {
   // Phone: bottom tabs — exactly 5 visible, everything else hidden
   // tabBarButton: () => null is belt-and-suspenders on top of href: null
   // because some Expo Router 5 builds render hidden tabs anyway without it
-  const HIDDEN_TAB = { href: null as any, tabBarButton: () => null }
+  const HIDDEN_TAB = { href: null as any }
 
   return (
     <Tabs
