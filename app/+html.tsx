@@ -22,6 +22,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
         <ScrollViewStyleReset />
         {/* Must run before the React bundle so it intercepts console.warn before
             React Native for Web's warnOnce() captures the original reference. */}
