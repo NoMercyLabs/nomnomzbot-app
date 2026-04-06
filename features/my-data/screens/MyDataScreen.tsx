@@ -5,6 +5,8 @@ import { useAuth } from '@/hooks/useAuth'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import {
   MessageSquare, Clock, Hash, Terminal, Download, Trash2, Info, Shield,
 } from 'lucide-react-native'
@@ -48,7 +50,7 @@ function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string
 export function MyDataScreen() {
   const { user } = useAuth()
 
-  const { data, isLoading, isRefetching, refetch } = useQuery<MyData>({
+  const { data, isLoading, isError, isRefetching, refetch } = useQuery<MyData>({
     queryKey: ['me', 'data'],
     enabled: !!user?.id,
     queryFn: async () => {
@@ -91,6 +93,9 @@ export function MyDataScreen() {
     onSuccess: () => Alert.alert('Data Deleted', 'Your data has been deleted from our systems.'),
     onError: () => Alert.alert('Delete Failed', 'Could not delete your data. Please try again.'),
   })
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   function handleDeleteRequest() {
     Alert.alert(
@@ -136,7 +141,9 @@ export function MyDataScreen() {
             </View>
           </View>
 
-          {isLoading ? (
+          {isError || timedOut ? (
+            <ErrorState title="Unable to load your data" onRetry={refetch} />
+          ) : showSkeleton ? (
             <Skeleton className="h-32 w-full" count={3} />
           ) : (
             <>

@@ -7,6 +7,7 @@ import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
 import { useApiQuery } from '@/hooks/useApi'
 import { useChannelStore } from '@/stores/useChannelStore'
 import { useToast } from '@/hooks/useToast'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import { EventResponseCard } from '../components/EventResponseCard'
 import { EventResponseModal } from '../components/EventResponseModal'
 import { upsertEventResponse, fetchEventResponse } from '../api'
@@ -17,10 +18,13 @@ export function EventResponsesScreen() {
   const queryClient = useQueryClient()
   const toast = useToast()
 
-  const { data, isLoading, isRefetching, refetch } = useApiQuery<EventResponseListItem[]>(
+  const { data, isLoading, isError, isRefetching, refetch } = useApiQuery<EventResponseListItem[]>(
     'event-responses',
     '/event-responses',
   )
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   const [modalEventType, setModalEventType] = useState<string | null>(null)
   const [modalConfig, setModalConfig] = useState<EventResponseConfig | null>(null)
@@ -95,7 +99,7 @@ export function EventResponsesScreen() {
           contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16, gap: 12 }}
           refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
         >
-          {isLoading ? (
+          {showSkeleton ? (
             <View className="gap-3">
               {Array.from({ length: 5 }).map((_, i) => (
                 <Skeleton key={i} className="h-24 rounded-xl" />

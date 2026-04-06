@@ -7,7 +7,7 @@ export function useWidgets() {
   const qc = useQueryClient()
   const channelId = useChannelStore((s) => s.currentChannel?.id)
 
-  const { data: widgets = [], isLoading, isRefetching, refetch } = useQuery({
+  const { data: widgets = [], isLoading, isError, isRefetching, refetch } = useQuery({
     queryKey: ['widgets', channelId],
     queryFn: () => widgetsApi.list(channelId!),
     enabled: !!channelId,
@@ -32,6 +32,7 @@ export function useWidgets() {
   return {
     widgets,
     isLoading,
+    isError,
     isRefetching,
     refetch,
     createWidget: createMutation.mutateAsync,

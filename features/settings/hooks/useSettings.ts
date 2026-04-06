@@ -43,6 +43,7 @@ export function useSettings() {
     channel: channelQuery.data,
     features: featuresQuery.data ?? [],
     isLoading: channelQuery.isLoading || featuresQuery.isLoading,
+    isError: channelQuery.isError || featuresQuery.isError,
     isRefetching: channelQuery.isRefetching || featuresQuery.isRefetching,
     refetch: () => {
       channelQuery.refetch()

@@ -13,8 +13,8 @@ export function Skeleton({ className, count = 1 }: SkeletonProps) {
   useEffect(() => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(opacity, { toValue: 0.7, duration: 800, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.3, duration: 800, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0.75, duration: 700, useNativeDriver: false }),
+        Animated.timing(opacity, { toValue: 0.3, duration: 700, useNativeDriver: false }),
       ]),
     ).start()
   }, [opacity])

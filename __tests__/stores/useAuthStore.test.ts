@@ -40,6 +40,7 @@ const mockUser: User = {
   color: '#9146FF',
   broadcasterType: '',
   createdAt: '2024-01-01T00:00:00Z',
+  isAdmin: false,
 }
 
 const resetState = () => {

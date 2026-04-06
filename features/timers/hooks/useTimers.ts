@@ -7,7 +7,7 @@ export function useTimers() {
   const qc = useQueryClient()
   const channelId = useChannelStore((s) => s.currentChannel?.id)
 
-  const { data: timers = [], isLoading, isRefetching, refetch } = useQuery({
+  const { data: timers = [], isLoading, isError, isRefetching, refetch } = useQuery({
     queryKey: ['timers', channelId],
     queryFn: () => timersApi.list(channelId!),
     enabled: !!channelId,
@@ -37,6 +37,7 @@ export function useTimers() {
   return {
     timers,
     isLoading,
+    isError,
     isRefetching,
     refetch,
     createTimer: createMutation.mutateAsync,

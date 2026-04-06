@@ -10,7 +10,9 @@ import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Puzzle, Link, Link2Off, CheckCircle2, Clock } from 'lucide-react-native'
+import { ErrorState } from '@/components/ui/ErrorState'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 
 interface Integration {
   id: string
@@ -183,7 +185,7 @@ export function IntegrationsScreen() {
   const addToast = useNotificationStore((s) => s.addToast)
   const queryClient = useQueryClient()
 
-  const { data, isLoading, isRefetching, refetch } = useQuery<IntegrationsResponse>({
+  const { data, isLoading, isError, isRefetching, refetch } = useQuery<IntegrationsResponse>({
     queryKey: ['integrations', channelId],
     queryFn: async () => {
       const res = await apiClient.get<{ data: IntegrationsResponse }>(
@@ -218,6 +220,9 @@ export function IntegrationsScreen() {
     }
   }
 
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
+
   const connectedCount = data?.integrations.filter((i) => i.connected).length ?? 0
 
   return (
@@ -229,11 +234,13 @@ export function IntegrationsScreen() {
       >
         <PageHeader
           title="Integrations"
-          subtitle={!isLoading ? `${connectedCount} connected` : undefined}
+          subtitle={!showSkeleton ? `${connectedCount} connected` : undefined}
         />
 
         <View className="px-5 pt-4 gap-5">
-          {isLoading ? (
+          {isError ? (
+            <ErrorState title="Unable to load integrations" onRetry={refetch} />
+          ) : showSkeleton ? (
             <View className="flex-row flex-wrap gap-3">
               {Array.from({ length: 4 }).map((_, i) => (
                 <View key={i} style={{ flex: 1, minWidth: 260, maxWidth: 400 }}>

@@ -7,6 +7,7 @@ import {
 } from 'react-native'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
 import { useState, useEffect } from 'react'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import { useForm, useFieldArray, Controller } from 'react-hook-form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api/client'
@@ -94,7 +95,7 @@ function AutoModTab() {
   const addToast = useNotificationStore((s) => s.addToast)
   const queryClient = useQueryClient()
 
-  const { data, isLoading, isRefetching, refetch } = useQuery<AutomodConfig>({
+  const { data, isLoading, isError, isRefetching, refetch } = useQuery<AutomodConfig>({
     queryKey: ['channel', channelId, 'automod'],
     queryFn: () => {
       if (!channelId) throw new Error('No channel selected')
@@ -102,6 +103,9 @@ function AutoModTab() {
     },
     enabled: !!channelId,
   })
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   const { control, handleSubmit, watch } = useForm<AutomodFormValues>({
     defaultValues: DEFAULT_FORM,
@@ -147,7 +151,7 @@ function AutoModTab() {
     setNewPhrase('')
   }
 
-  if (isLoading) {
+  if (showSkeleton) {
     return (
       <View className="gap-4 p-4">
         <Skeleton className="h-24" />
@@ -267,7 +271,7 @@ function BansTab() {
   const queryClient = useQueryClient()
   const [confirmUnban, setConfirmUnban] = useState<ModerationBan | null>(null)
 
-  const { data: bans = [], isLoading, isRefetching, refetch } = useQuery<ModerationBan[]>({
+  const { data: bans = [], isLoading, isError: bansError, isRefetching, refetch } = useQuery<ModerationBan[]>({
     queryKey: ['channel', channelId, 'moderation-bans'],
     queryFn: () => {
       if (!channelId) throw new Error('No channel selected')
@@ -275,6 +279,9 @@ function BansTab() {
     },
     enabled: !!channelId,
   })
+
+  const bansTimedOut = useLoadingTimeout(isLoading)
+  const showBansSkeleton = isLoading && !bansError && !bansTimedOut
 
   const unbanMutation = useMutation({
     mutationFn: (userId: string) => {
@@ -296,7 +303,7 @@ function BansTab() {
         contentContainerStyle={{ padding: 16, gap: 12 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
-        {isLoading ? (
+        {showBansSkeleton ? (
           <View className="gap-3">
             {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-20" />)}
           </View>
@@ -351,7 +358,7 @@ function ModLogTab() {
   const [entries, setEntries] = useState<ModLogEntry[]>([])
   const [hasMore, setHasMore] = useState(false)
 
-  const { data: pageResult, isLoading, isFetching, refetch } = useQuery({
+  const { data: pageResult, isLoading, isError: logError, isFetching, refetch } = useQuery({
     queryKey: ['channel', channelId, 'moderation-log', page],
     queryFn: () => {
       if (!channelId) throw new Error('No channel selected')
@@ -359,6 +366,9 @@ function ModLogTab() {
     },
     enabled: !!channelId,
   })
+
+  const logTimedOut = useLoadingTimeout(isLoading)
+  const showLogSkeleton = isLoading && page === 1 && !logError && !logTimedOut
 
   useEffect(() => {
     if (!pageResult) return
@@ -378,7 +388,7 @@ function ModLogTab() {
       contentContainerStyle={{ padding: 16, gap: 10 }}
       refreshControl={<RefreshControl refreshing={isLoading && page === 1} onRefresh={() => { setEntries([]); setHasMore(false); setPage(1) }} tintColor="#a855f7" />}
     >
-      {isLoading && page === 1 ? (
+      {showLogSkeleton ? (
         <View className="gap-3">
           {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-16" />)}
         </View>
@@ -436,7 +446,7 @@ function BlockedTermsTab() {
   const queryClient = useQueryClient()
   const [newTerm, setNewTerm] = useState('')
 
-  const { data: terms = [], isLoading, refetch, isRefetching } = useQuery<string[]>({
+  const { data: terms = [], isLoading, isError: termsError, refetch, isRefetching } = useQuery<string[]>({
     queryKey: ['channel', channelId, 'blocked-terms'],
     queryFn: () =>
       apiClient
@@ -444,6 +454,9 @@ function BlockedTermsTab() {
         .then((r) => r.data.data),
     enabled: !!channelId,
   })
+
+  const termsTimedOut = useLoadingTimeout(isLoading)
+  const showTermsSkeleton = isLoading && !termsError && !termsTimedOut
 
   const addMutation = useMutation({
     mutationFn: (term: string) =>
@@ -489,7 +502,7 @@ function BlockedTermsTab() {
           label="Add"
         />
       </View>
-      {isLoading ? (
+      {showTermsSkeleton ? (
         <View className="gap-2">
           {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-10" />)}
         </View>

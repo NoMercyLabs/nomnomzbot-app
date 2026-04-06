@@ -17,6 +17,8 @@ import {
   TrendingUp, Film,
 } from 'lucide-react-native'
 import type { DashboardStats, ActivityEvent, TopCommand } from '@/features/dashboard/types'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 
 const QUICK_ACTIONS = [
   { label: 'Change Title', href: '/(dashboard)/stream', icon: Edit2, color: '#a78bfa', bg: 'rgba(124,58,237,0.15)' },
@@ -61,7 +63,7 @@ export default function DashboardScreen() {
   const { t } = useFeatureTranslation('dashboard')
   const { isDesktop } = useBreakpoint()
 
-  const { data: stats, isLoading } = useQuery<DashboardStats>({
+  const { data: stats, isLoading, isError, refetch } = useQuery<DashboardStats>({
     queryKey: ['dashboard', 'stats', broadcasterId],
     queryFn: () =>
       apiClient
@@ -70,6 +72,18 @@ export default function DashboardScreen() {
     enabled: !!broadcasterId,
     refetchInterval: 30_000,
   })
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
+
+  if (isError || timedOut) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#141125' }}>
+        <PageHeader title={currentChannel?.displayName ?? t('title')} />
+        <ErrorState title="Unable to load dashboard" onRetry={refetch} />
+      </View>
+    )
+  }
 
   return (
     <ScrollView
@@ -142,7 +156,7 @@ export default function DashboardScreen() {
         </View>
 
         {/* Stat cards */}
-        {isLoading ? (
+        {showSkeleton ? (
           <View className="flex-row gap-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-24 flex-1 rounded-xl" />

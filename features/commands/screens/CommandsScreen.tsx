@@ -3,11 +3,13 @@ import { useState } from 'react'
 import { router } from 'expo-router'
 import { useApiQuery } from '@/hooks/useApi'
 import { useFeatureTranslation } from '@/hooks/useFeatureTranslation'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
-import { Plus, Search } from 'lucide-react-native'
+import { Plus, Search, Terminal } from 'lucide-react-native'
+import { ErrorState } from '@/components/ui/ErrorState'
 import type { CommandListItem } from '../types'
 
 type FilterType = 'All' | 'Text' | 'Pipeline' | 'Counter' | 'Platform'
@@ -56,7 +58,10 @@ export function CommandsScreen() {
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState<FilterType>('All')
 
-  const { data, isLoading } = useApiQuery<CommandListItem[]>('commands', '/commands')
+  const { data, isLoading, isError, refetch } = useApiQuery<CommandListItem[]>('commands', '/commands')
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   const filtered = (data ?? []).filter((cmd) => {
     const matchesSearch =
@@ -149,7 +154,9 @@ export function CommandsScreen() {
           ))}
         </View>
 
-        {isLoading ? (
+        {isError ? (
+          <ErrorState title="Unable to load commands" onRetry={refetch} />
+        ) : showSkeleton ? (
           <View className="gap-px">
             {Array.from({ length: 8 }).map((_, i) => (
               <View

@@ -9,10 +9,13 @@ import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
 import { TimerCard } from '../components/TimerCard'
 import { useTimers } from '../hooks/useTimers'
 import { useToast } from '@/hooks/useToast'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 
 export function TimersScreen() {
-  const { timers, isLoading, isRefetching, refetch, toggleTimer } = useTimers()
+  const { timers, isLoading, isError, isRefetching, refetch, toggleTimer } = useTimers()
   const toast = useToast()
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
   const activeCount = timers.filter((t) => t.isEnabled).length
 
   async function handleToggle(id: number) {
@@ -44,7 +47,7 @@ export function TimersScreen() {
         contentContainerStyle={{ paddingHorizontal: 16, paddingVertical: 16, gap: 12 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
-        {isLoading ? (
+        {showSkeleton ? (
           <View className="gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-24 rounded-xl" />

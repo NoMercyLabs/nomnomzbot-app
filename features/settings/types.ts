@@ -9,6 +9,12 @@ export interface ChannelSettings {
   language: string | null
   botJoinedAt: string | null
   subscriptionTier: string
+  botPrefix?: string
+  autoJoin?: boolean
+  whisperResponses?: boolean
+  overlayToken?: string
+  overlayShowAlerts?: boolean
+  overlayAlertDuration?: number
 }
 
 /** Matches FeatureStatusDto from the backend. */
@@ -23,6 +29,10 @@ export interface FeatureStatus {
 export interface UpdateChannelPayload {
   locale?: string
   autoJoin?: boolean
+  botPrefix?: string
+  whisperResponses?: boolean
+  overlayShowAlerts?: boolean
+  overlayAlertDuration?: number
 }
 
 export const FEATURE_KEYS = {

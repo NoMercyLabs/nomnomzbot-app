@@ -5,9 +5,11 @@ import { apiClient } from '@/lib/api/client'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Toggle } from '@/components/ui/Toggle'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { ErrorState } from '@/components/ui/ErrorState'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
 import { useChannelStore } from '@/stores/useChannelStore'
 import { useNotificationStore } from '@/stores/useNotificationStore'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import {
   MessageSquare, Shield, Music, Mic2, Megaphone, Gift,
   Bell, BarChart2, Radio, Scissors, DollarSign, Mail,
@@ -235,7 +237,7 @@ export function FeaturesScreen() {
   const addToast = useNotificationStore((s) => s.addToast)
   const queryClient = useQueryClient()
 
-  const { data: featureStates, isLoading } = useQuery<FeatureStates>({
+  const { data: featureStates, isLoading, isError, refetch } = useQuery<FeatureStates>({
     queryKey: ['channel', channelId, 'features'],
     queryFn: () =>
       apiClient
@@ -243,6 +245,9 @@ export function FeaturesScreen() {
         .then((r) => r.data.data),
     enabled: !!channelId,
   })
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   const toggleMutation = useMutation({
     mutationFn: ({ key, enabled }: { key: string; enabled: boolean }) =>
@@ -296,8 +301,11 @@ export function FeaturesScreen() {
           </View>
 
           {/* Features grid */}
+          {isError ? (
+            <ErrorState title="Unable to load features" onRetry={refetch} />
+          ) : (
           <View className="flex-row flex-wrap gap-4">
-            {isLoading
+            {showSkeleton
               ? Array.from({ length: 12 }).map((_, i) => (
                   <View key={i} style={{ flex: 1, minWidth: 280, maxWidth: 420 }}>
                     <Skeleton className="h-40 rounded-xl" />
@@ -314,6 +322,7 @@ export function FeaturesScreen() {
                   </View>
                 ))}
           </View>
+          )}
         </View>
       </ScrollView>
     </ErrorBoundary>

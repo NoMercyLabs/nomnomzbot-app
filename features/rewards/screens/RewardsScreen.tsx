@@ -15,6 +15,8 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
 import { Gift, Plus, Edit2, Trash2, Coins, ChevronRight } from 'lucide-react-native'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 
 interface Reward {
   id: string
@@ -134,7 +136,7 @@ export function RewardsScreen() {
   const channelId = useChannelStore((s) => s.currentChannel?.id)
   const queryClient = useQueryClient()
   const addToast = useNotificationStore((s) => s.addToast)
-  const { data: rewards, isLoading, isRefetching, refetch } = useApiQuery<Reward[]>('rewards', '/rewards')
+  const { data: rewards, isLoading, isError, isRefetching, refetch } = useApiQuery<Reward[]>('rewards', '/rewards')
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) =>
@@ -156,6 +158,9 @@ export function RewardsScreen() {
     onError: () => addToast('error', 'Failed to update reward'),
   })
 
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
+
   const enabledCount = rewards?.filter((r) => r.enabled && !r.isPaused).length ?? 0
   const totalCount = rewards?.length ?? 0
 
@@ -164,7 +169,7 @@ export function RewardsScreen() {
       <View className="flex-1" style={{ backgroundColor: '#141125' }}>
         <PageHeader
           title="Channel Rewards"
-          subtitle={!isLoading ? `${enabledCount} / ${totalCount} active` : undefined}
+          subtitle={!showSkeleton ? `${enabledCount} / ${totalCount} active` : undefined}
           rightContent={
             <View className="flex-row gap-2">
               <Button
@@ -214,7 +219,9 @@ export function RewardsScreen() {
             contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
             refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
           >
-            {isLoading ? (
+            {isError ? (
+              <ErrorState title="Unable to load rewards" onRetry={refetch} />
+            ) : showSkeleton ? (
               <View className="flex-row flex-wrap gap-3">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <View key={i} style={{ flex: 1, minWidth: 260, maxWidth: 400 }}>

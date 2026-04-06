@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api/client'
 import { useChannelStore } from '@/stores/useChannelStore'
 import { useFeatureTranslation } from '@/hooks/useFeatureTranslation'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/Button'
 import { DataTable } from '@/components/compound/DataTable'
@@ -16,11 +17,14 @@ export function PipelinesScreen() {
   const { t } = useFeatureTranslation('pipelines')
   const broadcasterId = useChannelStore((s) => s.currentChannel?.broadcasterId)
 
-  const { data, isLoading } = useQuery<Pipeline[]>({
+  const { data, isLoading, isError } = useQuery<Pipeline[]>({
     queryKey: ['pipelines', broadcasterId],
     queryFn: () => apiClient.get(`/api/${broadcasterId}/pipelines`).then((r) => r.data),
     enabled: !!broadcasterId,
   })
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   const columns = [
     { key: 'name', title: 'Name', render: (v: string) => <Text className="text-sm text-white">{v}</Text> },
@@ -46,7 +50,7 @@ export function PipelinesScreen() {
           columns={columns}
           data={data ?? []}
           keyExtractor={(p) => String(p.id)}
-          isLoading={isLoading}
+          isLoading={showSkeleton}
           onRowPress={(p) => router.push(`/(dashboard)/pipelines/${p.id}` as any)}
           emptyMessage={t('empty.title')}
         />

@@ -18,9 +18,12 @@ WebBrowser.maybeCompleteAuthSession()
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5,
-      retry: 2,
+      staleTime: 1000 * 60 * 2,
+      retry: 1,
+      retryDelay: 500,
       refetchOnWindowFocus: true,
+      // Treat network errors as errors immediately so screens can show error states
+      networkMode: 'always',
     },
   },
 })

@@ -24,6 +24,7 @@ import { formatRelativeTime } from '@/lib/utils/format'
 import { communityApi } from '../api'
 import { TrustBadge } from '../components/TrustBadge'
 import type { CommunityUser, BannedUser } from '../types'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 
 interface CommunityStats {
   followers: number
@@ -151,11 +152,14 @@ function UsersTab({ channelId, role }: { channelId: string; role?: 'follower' | 
     return () => clearTimeout(timer)
   }, [search])
 
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const { data, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['channel', channelId, 'community', 'users', debouncedSearch, role],
     queryFn: () => communityApi.getUsers(channelId, { search: debouncedSearch || undefined, page: 1, take: 25, role }),
     enabled: !!channelId,
   })
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   const users = data?.data ?? []
 
@@ -202,20 +206,20 @@ function UsersTab({ channelId, role }: { channelId: string; role?: 'follower' | 
       </View>
 
       <FlatList
-        data={isLoading ? ([] as CommunityUser[]) : users}
+        data={showSkeleton ? ([] as CommunityUser[]) : users}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <UserRow user={item} onPress={() => router.push(`/(dashboard)/community/${item.id}` as any)} />
         )}
         ListHeaderComponent={
-          isLoading ? (
+          showSkeleton ? (
             <View>
               {Array.from({ length: 5 }).map((_, i) => <UserRowSkeleton key={i} />)}
             </View>
           ) : null
         }
         ListEmptyComponent={
-          !isLoading ? (
+          !showSkeleton ? (
             <EmptyState
               icon={<Users size={40} color="#3d3566" />}
               title="No users found"
@@ -245,11 +249,14 @@ function UsersTab({ channelId, role }: { channelId: string; role?: 'follower' | 
 
 function BansTab({ channelId }: { channelId: string }) {
   const queryClient = useQueryClient()
-  const { data, isLoading, refetch, isRefetching } = useQuery({
+  const { data, isLoading, isError, refetch, isRefetching } = useQuery({
     queryKey: ['channel', channelId, 'community', 'bans'],
     queryFn: () => communityApi.getBans(channelId, { page: 1, take: 25 }),
     enabled: !!channelId,
   })
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   const { mutate: unban, variables: unbanningId, isPending: isUnbanning } = useMutation({
     mutationFn: (userId: string) => communityApi.unbanUser(channelId, userId),
@@ -260,13 +267,13 @@ function BansTab({ channelId }: { channelId: string }) {
 
   return (
     <FlatList
-      data={isLoading ? ([] as BannedUser[]) : bans}
+      data={showSkeleton ? ([] as BannedUser[]) : bans}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => (
         <BanRow ban={item} onUnban={() => unban(item.id)} unbanning={isUnbanning && unbanningId === item.id} />
       )}
       ListHeaderComponent={
-        isLoading ? (
+        showSkeleton ? (
           <View className="px-5 py-3 gap-4">
             {Array.from({ length: 5 }).map((_, i) => (
               <View key={i} className="gap-2">
@@ -278,7 +285,7 @@ function BansTab({ channelId }: { channelId: string }) {
         ) : null
       }
       ListEmptyComponent={
-        !isLoading && !isRefetching && data !== undefined ? (
+        !showSkeleton && !isRefetching && data !== undefined ? (
           <EmptyState icon={<Ban size={40} color="#3d3566" />} title="No bans" message="No banned users in this channel." />
         ) : null
       }

@@ -7,6 +7,8 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/lib/api/client'
 import { useAuth } from '@/hooks/useAuth'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 
 interface BillingInfo {
   currentPlan: string
@@ -117,7 +119,7 @@ export function BillingScreen() {
   const { user } = useAuth()
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
 
-  const { data: billing, isLoading } = useQuery<BillingInfo>({
+  const { data: billing, isLoading, isError, refetch } = useQuery<BillingInfo>({
     queryKey: ['billing'],
     enabled: !!user?.id,
     queryFn: async () => {
@@ -126,6 +128,8 @@ export function BillingScreen() {
     },
   })
 
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
   const currentPlanId = billing?.currentPlan ?? null
 
   return (
@@ -142,7 +146,9 @@ export function BillingScreen() {
             <Text className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#5a5280' }}>
               Plans
             </Text>
-            {isLoading ? (
+            {isError || timedOut ? (
+              <ErrorState title="Unable to load billing info" onRetry={refetch} />
+            ) : showSkeleton ? (
               <View className="flex-row flex-wrap gap-3">
                 {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-64 flex-1 rounded-xl min-w-[180px]" />)}
               </View>

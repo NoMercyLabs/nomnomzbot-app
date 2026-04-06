@@ -10,6 +10,8 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ShieldCheck, ShieldAlert, Lock } from 'lucide-react-native'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 
 interface Permission {
   scope: string
@@ -74,7 +76,7 @@ export function PermissionsScreen() {
   const requestScopeUpgrade = useAuthStore((s) => s.requestScopeUpgrade)
   const pendingScopeUpgrade = useAuthStore((s) => s.pendingScopeUpgrade)
 
-  const { data, isLoading, isRefetching, refetch } = useQuery<PermissionsResponse>({
+  const { data, isLoading, isError, isRefetching, refetch } = useQuery<PermissionsResponse>({
     queryKey: ['permissions', channelId],
     queryFn: async () => {
       const res = await apiClient.get<{ data: PermissionsResponse }>(
@@ -88,6 +90,9 @@ export function PermissionsScreen() {
   function handleGrant(scope: string) {
     requestScopeUpgrade([scope])
   }
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   const grouped = data?.permissions.reduce<Record<string, Permission[]>>((acc, p) => {
     if (!acc[p.category]) acc[p.category] = []
@@ -107,11 +112,13 @@ export function PermissionsScreen() {
       >
         <PageHeader
           title="Permissions"
-          subtitle={!isLoading ? `${grantedCount} / ${totalCount} granted` : 'OAuth scope management'}
+          subtitle={!showSkeleton ? `${grantedCount} / ${totalCount} granted` : 'OAuth scope management'}
         />
 
         <View className="px-5 pt-4 gap-4">
-          {isLoading ? (
+          {isError || timedOut ? (
+            <ErrorState title="Unable to load permissions" onRetry={refetch} />
+          ) : showSkeleton ? (
             <View className="gap-4">
               {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
             </View>

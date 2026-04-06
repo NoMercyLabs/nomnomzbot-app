@@ -5,8 +5,10 @@ import { apiClient } from '@/lib/api/client'
 import { useBreakpoint } from '@/hooks/useBreakpoint'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { ErrorState } from '@/components/ui/ErrorState'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import {
-  Users, Hash, Activity, Server,
+  Users, Hash, Activity, Server, ChevronRight,
   CheckCircle, AlertTriangle, XCircle,
 } from 'lucide-react-native'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
@@ -81,7 +83,7 @@ const eventColors = {
 export default function AdminDashboardScreen() {
   const { isDesktop } = useBreakpoint()
 
-  const { data, isLoading } = useQuery<AdminStats>({
+  const { data, isLoading, isError, refetch } = useQuery<AdminStats>({
     queryKey: ['admin', 'stats'],
     queryFn: async () => {
       const res = await apiClient.get<{ data: AdminStats }>('/v1/admin/stats')
@@ -108,12 +110,15 @@ export default function AdminDashboardScreen() {
     refetchInterval: 60_000,
   })
 
+  const timedOut = useLoadingTimeout(isLoading)
   const overallStatus = data?.systemStatus ?? 'healthy'
   const { color: statusColor, Icon: StatusIcon } = statusConfig[overallStatus]
 
   const mainContent = (
     <View className="px-5 pt-4 gap-5">
-      {isLoading ? (
+      {isError || timedOut ? (
+        <ErrorState title="Unable to load admin stats" onRetry={refetch} />
+      ) : isLoading ? (
         <Skeleton className="h-24 w-full" count={3} />
       ) : (
         <>

@@ -14,10 +14,12 @@ import { Toggle } from '@/components/ui/Toggle'
 import { Modal as AppModal } from '@/components/ui/Modal'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { EmptyState } from '@/components/ui/EmptyState'
+import { ErrorState } from '@/components/ui/ErrorState'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
 import { useWidgets } from '../hooks/useWidgets'
 import { useToast } from '@/hooks/useToast'
 import { useBreakpoint } from '@/hooks/useBreakpoint'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import { WIDGET_TYPE_LABELS, WIDGET_TYPE_DESCRIPTIONS, type WidgetType, type Widget } from '../types'
 import * as Clipboard from 'expo-clipboard'
 
@@ -153,10 +155,12 @@ function CreateWidgetModal({ visible, onClose, onCreate }: {
 }
 
 export function WidgetsScreen() {
-  const { widgets, isLoading, isRefetching, refetch, createWidget, updateWidget, deleteWidget } = useWidgets()
+  const { widgets, isLoading, isError, isRefetching, refetch, createWidget, updateWidget, deleteWidget } = useWidgets()
   const toast = useToast()
   const { isDesktop } = useBreakpoint()
   const [showCreate, setShowCreate] = useState(false)
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   async function handleCreate(type: WidgetType) {
     setShowCreate(false)
@@ -239,7 +243,9 @@ export function WidgetsScreen() {
         contentContainerStyle={{ padding: 20, paddingBottom: 32, gap: 16 }}
         refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} />}
       >
-        {isLoading ? (
+        {isError ? (
+          <ErrorState title="Unable to load widgets" onRetry={refetch} />
+        ) : showSkeleton ? (
           <View className="flex-row flex-wrap gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
               <View key={i} style={{ flex: 1, minWidth: 260, maxWidth: 400 }}>

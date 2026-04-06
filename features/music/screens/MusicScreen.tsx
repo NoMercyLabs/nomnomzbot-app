@@ -31,6 +31,7 @@ import {
   removeFromQueue,
 } from '../api'
 import type { NowPlaying, QueueItem } from '../types'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 
 const fmtDuration = (ms: number) => {
   const s = Math.floor(ms / 1000)
@@ -188,6 +189,9 @@ function QueueTab({ channelId }: { channelId: string }) {
     enabled: !!channelId,
   })
 
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
+
   const addMutation = useMutation({
     mutationFn: (q: string) => addToQueue(channelId, q),
     onSuccess: () => {
@@ -278,7 +282,7 @@ function QueueTab({ channelId }: { channelId: string }) {
         />
       </View>
 
-      {isLoading ? (
+      {showSkeleton ? (
         <View className="gap-2 p-4">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-14 rounded-lg" />
@@ -336,12 +340,15 @@ export function MusicScreen() {
   const channelId = useChannelStore((s) => s.currentChannel?.id ?? '')
   const { isDesktop } = useBreakpoint()
 
-  const { data: nowPlaying, isLoading: npLoading } = useQuery<NowPlaying | null>({
+  const { data: nowPlaying, isLoading: npLoading, isError: npError } = useQuery<NowPlaying | null>({
     queryKey: ['music', 'now-playing', channelId],
     queryFn: () => getNowPlaying(channelId),
     enabled: !!channelId,
     refetchInterval: 5000,
   })
+
+  const npTimedOut = useLoadingTimeout(npLoading)
+  const npShowSkeleton = npLoading && !npError && !npTimedOut
 
   return (
     <ErrorBoundary>
@@ -363,7 +370,7 @@ export function MusicScreen() {
                 <NowPlayingCard
                   channelId={channelId}
                   np={nowPlaying}
-                  isLoading={npLoading}
+                  isLoading={npShowSkeleton}
                 />
               </ScrollView>
             </View>
@@ -378,7 +385,7 @@ export function MusicScreen() {
             <NowPlayingCard
               channelId={channelId}
               np={nowPlaying}
-              isLoading={npLoading}
+              isLoading={npShowSkeleton}
             />
             <QueueTab channelId={channelId} />
           </>

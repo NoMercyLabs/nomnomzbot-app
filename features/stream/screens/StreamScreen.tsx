@@ -10,7 +10,9 @@ import { Skeleton } from '@/components/ui/Skeleton'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Toggle } from '@/components/ui/Toggle'
+import { ErrorState } from '@/components/ui/ErrorState'
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import {
   Radio, Eye, Clock, Activity, Film, Zap, Edit2, X, Check,
   Users, Globe, AlertTriangle,
@@ -89,7 +91,7 @@ export function StreamScreen() {
   const [localTags, setLocalTags] = useState<string[]>([])
   const [contentLabels, setContentLabels] = useState<Record<string, boolean>>({})
 
-  const { data, isLoading, isRefetching, refetch } = useQuery<StreamInfo>({
+  const { data, isLoading, isError, isRefetching, refetch } = useQuery<StreamInfo>({
     queryKey: ['stream', channelId],
     queryFn: async () => {
       const res = await apiClient.get<{ data: StreamInfo }>(`/v1/channels/${channelId}/stream`)
@@ -102,6 +104,9 @@ export function StreamScreen() {
       return d
     },
   })
+
+  const timedOut = useLoadingTimeout(isLoading)
+  const showSkeleton = isLoading && !isError && !timedOut
 
   const updateTitleMutation = useApiMutation<StreamInfo, { title: string }>(
     '/stream/title', 'patch',
@@ -215,7 +220,9 @@ export function StreamScreen() {
           </View>
         )}
 
-        {isLoading ? (
+        {isError || timedOut ? (
+          <ErrorState title="Unable to load stream info" onRetry={refetch} />
+        ) : showSkeleton ? (
           <View className="px-5 pt-4 gap-4">
             <Skeleton className="h-28 w-full rounded-xl" />
             <Skeleton className="h-28 w-full rounded-xl" />
