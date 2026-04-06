@@ -53,7 +53,9 @@ apiClient.interceptors.response.use(
   async (error: AxiosError<ApiError>) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean }
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // Never auto-retry auth endpoints — if /auth/refresh itself returns 401, logout immediately
+    const isAuthEndpoint = originalRequest.url?.includes('/auth/')
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       originalRequest._retry = true
 
       if (_isRefreshing) {
