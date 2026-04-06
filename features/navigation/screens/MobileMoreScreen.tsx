@@ -2,10 +2,9 @@ import { View, Text, ScrollView, Pressable } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 import {
-  Gift, Key, Shield, Radio, Users,
-  Layers, Link, Zap, CreditCard,
-  Database, AlarmClock, GitBranch, ShieldCheck,
-  Settings, ChevronRight,
+  Gift, Key, MessageSquare, Shield, Radio, Users,
+  Music, Layout, Link, Zap, CreditCard,
+  Database, Settings, ChevronRight,
   type LucideIcon,
 } from 'lucide-react-native'
 
@@ -22,8 +21,8 @@ const MORE_SECTIONS: { title: string; items: NavItem[] }[] = [
     items: [
       { label: 'Rewards', href: '/(dashboard)/rewards', Icon: Gift, color: '#a78bfa' },
       { label: 'Permissions', href: '/(dashboard)/permissions', Icon: Key, color: '#60a5fa' },
-      { label: 'Timers', href: '/(dashboard)/timers', Icon: AlarmClock, color: '#4ade80' },
-      { label: 'Pipelines', href: '/(dashboard)/pipelines', Icon: GitBranch, color: '#f59e0b' },
+      { label: 'Timers', href: '/(dashboard)/timers', Icon: Zap, color: '#4ade80' },
+      { label: 'Pipelines', href: '/(dashboard)/pipelines', Icon: Link, color: '#f59e0b' },
     ],
   },
   {
@@ -32,14 +31,15 @@ const MORE_SECTIONS: { title: string; items: NavItem[] }[] = [
       { label: 'Moderation', href: '/(dashboard)/moderation', Icon: Shield, color: '#ef4444' },
       { label: 'Stream Info', href: '/(dashboard)/stream', Icon: Radio, color: '#f87171' },
       { label: 'Community', href: '/(dashboard)/community', Icon: Users, color: '#34d399' },
-      { label: 'Event Responses', href: '/(dashboard)/event-responses', Icon: Zap, color: '#fbbf24' },
+      { label: 'Event Responses', href: '/(dashboard)/event-responses', Icon: MessageSquare, color: '#fbbf24' },
     ],
   },
   {
     title: 'Tools',
     items: [
-      { label: 'Widgets', href: '/(dashboard)/widgets', Icon: Layers, color: '#a78bfa' },
-      { label: 'Integrations', href: '/(dashboard)/integrations', Icon: Link, color: '#60a5fa' },
+      { label: 'Music', href: '/(dashboard)/music', Icon: Music, color: '#a78bfa' },
+      { label: 'Widgets', href: '/(dashboard)/widgets', Icon: Layout, color: '#60a5fa' },
+      { label: 'Integrations', href: '/(dashboard)/integrations', Icon: Link, color: '#94a3b8' },
     ],
   },
   {
@@ -57,6 +57,14 @@ export function MobileMoreScreen() {
   const router = useRouter()
   const isAdmin = useAuthStore((s) => s.user?.isAdmin)
 
+  const sections = [
+    ...MORE_SECTIONS,
+    ...(isAdmin ? [{
+      title: 'Admin',
+      items: [{ label: 'Admin Panel', href: '/(dashboard)/admin', Icon: Shield, color: '#ef4444' }],
+    }] : []),
+  ]
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#141125' }}
@@ -73,13 +81,7 @@ export function MobileMoreScreen() {
       </View>
 
       <View className="px-4 py-3 gap-5">
-        {[
-          ...MORE_SECTIONS,
-          ...(isAdmin ? [{
-            title: 'Admin',
-            items: [{ label: 'Admin Panel', href: '/(dashboard)/admin', Icon: ShieldCheck, color: '#ef4444' }],
-          }] : []),
-        ].map((section) => (
+        {sections.map((section) => (
           <View key={section.title} className="gap-1.5">
             <Text
               className="text-xs font-semibold uppercase tracking-wider px-1 mb-1"
@@ -93,7 +95,7 @@ export function MobileMoreScreen() {
             >
               {section.items.map((item, i) => (
                 <Pressable
-                  key={item.href}
+                  key={item.href + item.label}
                   onPress={() => router.push(item.href as any)}
                   className="flex-row items-center gap-3 px-4"
                   style={[
