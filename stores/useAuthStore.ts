@@ -22,6 +22,10 @@ interface AuthState {
   onboardingComplete: boolean
   grantedScopes: string[]
   pendingScopeUpgrade: string[] | null
+  /** True once the persist middleware has finished reading from storage.
+   *  Always false on first synchronous render — use this to avoid redirecting
+   *  to login before persisted auth state has been restored. */
+  _hasHydrated: boolean
 
   init: () => Promise<void>
   login: () => Promise<void>
@@ -56,6 +60,7 @@ export const useAuthStore = create<AuthState>()(
       onboardingComplete: false,
       grantedScopes: [],
       pendingScopeUpgrade: null,
+      _hasHydrated: false,
 
       init: async () => {
         const { accessToken, expiresAt } = get()
@@ -230,7 +235,13 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated,
         onboardingComplete: state.onboardingComplete,
         grantedScopes: state.grantedScopes,
+        // _hasHydrated intentionally excluded — it resets to false on every cold start
       }),
+      onRehydrateStorage: () => (_state, error) => {
+        if (!error) {
+          useAuthStore.setState({ _hasHydrated: true })
+        }
+      },
     },
   ),
 )

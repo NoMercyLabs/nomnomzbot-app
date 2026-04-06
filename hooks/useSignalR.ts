@@ -4,6 +4,7 @@ import { AppState, Platform } from 'react-native'
 import { useAuthStore } from '@/stores/useAuthStore'
 import {
   getDashboardConnection,
+  peekDashboardConnection,
   incrementDashboardRefCount,
   decrementDashboardRefCount,
   getDashboardRefCount,
@@ -18,6 +19,11 @@ let statusListeners = new Set<(status: ConnectionStatus) => void>()
 function broadcastStatus(status: ConnectionStatus) {
   statusListeners.forEach((fn) => fn(status))
 }
+
+// Track which connection instances already have lifecycle handlers attached so
+// we don't accumulate duplicate onreconnecting/onreconnected/onclose callbacks
+// across multiple connect() calls.
+const _registeredConnections = new WeakSet<import('@microsoft/signalr').HubConnection>()
 
 export function useSignalR() {
   const [status, setStatus] = useState<ConnectionStatus>('disconnected')
@@ -40,21 +46,52 @@ export function useSignalR() {
     const conn = getDashboardConnection()
     incrementDashboardRefCount()
 
-    conn.onreconnecting(() => broadcastStatus('reconnecting'))
-    conn.onreconnected(() => broadcastStatus('connected'))
-    conn.onclose(() => broadcastStatus('disconnected'))
+    // Register lifecycle handlers only once per connection instance to avoid
+    // accumulating duplicate callbacks when connect() is called multiple times.
+    if (!_registeredConnections.has(conn)) {
+      _registeredConnections.add(conn)
+      conn.onreconnecting(() => broadcastStatus('reconnecting'))
+      conn.onreconnected(() => broadcastStatus('connected'))
+      conn.onclose(() => {
+        _registeredConnections.delete(conn)
+        broadcastStatus('disconnected')
+      })
+    }
 
-    if (conn.state === HubConnectionState.Disconnected) {
-      broadcastStatus('connecting')
+    if (conn.state !== HubConnectionState.Disconnected) {
+      if (conn.state === HubConnectionState.Connected) broadcastStatus('connected')
+      return
+    }
+
+    broadcastStatus('connecting')
+
+    // Retry start() with exponential backoff. withAutomaticReconnect() only fires
+    // after a successful connection drops — it does NOT retry a failed start().
+    // Retrying here allows auth init() to finish refreshing an expired token
+    // before the 2nd or 3rd attempt picks up the new one.
+    for (let attempt = 0; attempt < 4; attempt++) {
       try {
         await conn.start()
         broadcastStatus('connected')
+        return
       } catch (e) {
-        broadcastStatus('disconnected')
-        setError((e as Error).message)
+        const msg = (e as Error).message ?? ''
+        // stop() was called mid-negotiate (e.g., logout racing with connect) — don't retry
+        if (msg.includes('stopped during negotiation')) {
+          broadcastStatus('disconnected')
+          return
+        }
+        // conn is orphaned: destroyDashboardConnection() was called and set dashboardConnection=null
+        if (peekDashboardConnection() !== conn) {
+          return
+        }
+        if (attempt < 3) {
+          await new Promise<void>((r) => setTimeout(r, 1000 * 2 ** attempt))
+        } else {
+          broadcastStatus('disconnected')
+          setError(msg)
+        }
       }
-    } else if (conn.state === HubConnectionState.Connected) {
-      broadcastStatus('connected')
     }
   }, [])
 

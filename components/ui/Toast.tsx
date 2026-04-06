@@ -18,7 +18,10 @@ const config = {
 export function Toast({ toast, onDismiss }: ToastProps) {
   const c = config[toast.type]
   return (
-    <View className={cn('flex-row items-center gap-3 rounded-xl border p-4 shadow-lg', c.container)}>
+    <View
+      className={cn('flex-row items-center gap-3 rounded-xl border p-4', c.container)}
+      style={{ boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)' } as any}
+    >
       {c.icon}
       <Text className="flex-1 text-gray-100 text-sm">{toast.message}</Text>
       <Pressable onPress={() => onDismiss(toast.id)} className="p-0.5">

@@ -45,6 +45,11 @@ export function getDashboardConnection(): HubConnection {
   return dashboardConnection
 }
 
+/** Returns the current connection without creating one. Used to detect orphaned refs. */
+export function peekDashboardConnection(): HubConnection | null {
+  return dashboardConnection
+}
+
 export function incrementDashboardRefCount(): void {
   dashboardRefCount++
 }
@@ -97,14 +102,14 @@ export async function destroyOverlayConnection(): Promise<void> {
   }
 }
 
-// ── OBSRelayHub (/hubs/obs-relay) ────────────────────────────────────────────
+// ── OBSRelayHub (/hubs/obs) ──────────────────────────────────────────────────
 
 let obsConnection: HubConnection | null = null
 let obsRefCount = 0
 
 export function getOBSConnection(): HubConnection {
   if (!obsConnection) {
-    obsConnection = buildConnection('/hubs/obs-relay')
+    obsConnection = buildConnection('/hubs/obs')
   }
   return obsConnection
 }

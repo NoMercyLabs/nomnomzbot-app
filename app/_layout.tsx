@@ -1,4 +1,5 @@
 import '@/lib/web/fixRnwLayers'
+import '@/lib/web/suppressRnwDeprecations'
 import '../global.css'
 import { useEffect } from 'react'
 import { Stack } from 'expo-router'

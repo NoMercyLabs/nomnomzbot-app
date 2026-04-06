@@ -38,7 +38,10 @@ const iconColors = {
 export function Toast({ message, type = 'info' }: ToastProps) {
   const Icon = icons[type]
   return (
-    <View className={cn('flex-row items-center gap-3 rounded-xl border px-4 py-3 shadow-lg', styles[type])}>
+    <View
+      className={cn('flex-row items-center gap-3 rounded-xl border px-4 py-3', styles[type])}
+      style={{ boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)' } as any}
+    >
       <Icon size={18} color={iconColors[type]} />
       <Text className={cn('flex-1 text-sm font-medium', textStyles[type])}>{message}</Text>
     </View>

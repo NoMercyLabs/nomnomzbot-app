@@ -20,7 +20,7 @@ import {
 } from 'lucide-react-native'
 
 export default function DashboardLayout() {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { isAuthenticated, isLoading, isHydrated } = useAuth()
   const { currentChannel } = useChannel()
   const { isDesktop, isTablet } = useBreakpoint()
   const { setSidebarCollapsed } = useAppStore()
@@ -34,7 +34,7 @@ export default function DashboardLayout() {
     }
   }, [isTablet, isDesktop, setSidebarCollapsed])
 
-  if (isLoading) return null
+  if (isLoading || !isHydrated) return null
 
   if (!isAuthenticated) return <Redirect href="/(auth)/login" />
   if (!currentChannel) return <Redirect href="/(auth)/onboarding" />
@@ -70,7 +70,8 @@ export default function DashboardLayout() {
   }
 
   // Phone: bottom tabs — exactly 5 visible, everything else hidden
-  const HIDDEN_TAB = { tabBarButton: () => null }
+  // href: null is the correct Expo Router v5 way to hide tabs; tabBarButton suppression is v4-only
+  const HIDDEN_TAB = { href: null as any }
 
   return (
     <Tabs
