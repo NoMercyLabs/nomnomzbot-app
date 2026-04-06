@@ -69,7 +69,11 @@ export default function DashboardLayout() {
     )
   }
 
-  // Phone: bottom tabs with 5 key tabs
+  // Phone: bottom tabs — exactly 5 visible, everything else hidden
+  // tabBarButton: () => null is belt-and-suspenders on top of href: null
+  // because some Expo Router 5 builds render hidden tabs anyway without it
+  const HIDDEN_TAB = { href: null as any, tabBarButton: () => null }
+
   return (
     <Tabs
       screenOptions={{
@@ -77,45 +81,56 @@ export default function DashboardLayout() {
         tabBarStyle: {
           backgroundColor: '#0F0D1E',
           borderTopColor: '#1e1a35',
+          borderTopWidth: 1,
+          height: 64,
+          paddingBottom: 10,
+          paddingTop: 4,
         },
         tabBarActiveTintColor: '#8b5cf6',
         tabBarInactiveTintColor: '#5a5280',
+        tabBarLabelStyle: {
+          fontSize: 10,
+          marginTop: -2,
+        },
+        tabBarItemStyle: {
+          minHeight: 44,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{ title: 'Dashboard', tabBarIcon: ({ color, size }) => <LayoutDashboard color={color} size={size} /> }}
+        options={{ title: 'Home', tabBarIcon: ({ color }) => <LayoutDashboard color={color} size={20} /> }}
       />
       <Tabs.Screen
         name="commands"
-        options={{ title: 'Commands', tabBarIcon: ({ color, size }) => <Terminal color={color} size={size} /> }}
+        options={{ title: 'Commands', tabBarIcon: ({ color }) => <Terminal color={color} size={20} /> }}
       />
       <Tabs.Screen
         name="chat"
-        options={{ title: 'Chat', tabBarIcon: ({ color, size }) => <MessageSquare color={color} size={size} /> }}
+        options={{ title: 'Chat', tabBarIcon: ({ color }) => <MessageSquare color={color} size={20} /> }}
       />
       <Tabs.Screen
         name="music"
-        options={{ title: 'Music', tabBarIcon: ({ color, size }) => <Music color={color} size={size} /> }}
+        options={{ title: 'Music', tabBarIcon: ({ color }) => <Music color={color} size={20} /> }}
       />
       <Tabs.Screen
         name="settings"
-        options={{ title: 'More', tabBarIcon: ({ color, size }) => <Settings color={color} size={size} /> }}
+        options={{ title: 'More', tabBarIcon: ({ color }) => <Settings color={color} size={20} /> }}
       />
-      <Tabs.Screen name="rewards" options={{ href: null }} />
-      <Tabs.Screen name="moderation" options={{ href: null }} />
-      <Tabs.Screen name="widgets" options={{ href: null }} />
-      <Tabs.Screen name="stream" options={{ href: null }} />
-      <Tabs.Screen name="community" options={{ href: null }} />
-      <Tabs.Screen name="pipelines" options={{ href: null }} />
-      <Tabs.Screen name="integrations" options={{ href: null }} />
-      <Tabs.Screen name="permissions" options={{ href: null }} />
-      <Tabs.Screen name="billing" options={{ href: null }} />
-      <Tabs.Screen name="features" options={{ href: null }} />
-      <Tabs.Screen name="timers" options={{ href: null }} />
-      <Tabs.Screen name="my-data" options={{ href: null }} />
-      <Tabs.Screen name="event-responses" options={{ href: null }} />
-      <Tabs.Screen name="admin" options={{ href: null }} />
+      <Tabs.Screen name="rewards" options={HIDDEN_TAB} />
+      <Tabs.Screen name="moderation" options={HIDDEN_TAB} />
+      <Tabs.Screen name="widgets" options={HIDDEN_TAB} />
+      <Tabs.Screen name="stream" options={HIDDEN_TAB} />
+      <Tabs.Screen name="community" options={HIDDEN_TAB} />
+      <Tabs.Screen name="pipelines" options={HIDDEN_TAB} />
+      <Tabs.Screen name="integrations" options={HIDDEN_TAB} />
+      <Tabs.Screen name="permissions" options={HIDDEN_TAB} />
+      <Tabs.Screen name="billing" options={HIDDEN_TAB} />
+      <Tabs.Screen name="features" options={HIDDEN_TAB} />
+      <Tabs.Screen name="timers" options={HIDDEN_TAB} />
+      <Tabs.Screen name="my-data" options={HIDDEN_TAB} />
+      <Tabs.Screen name="event-responses" options={HIDDEN_TAB} />
+      <Tabs.Screen name="admin" options={HIDDEN_TAB} />
     </Tabs>
   )
 }

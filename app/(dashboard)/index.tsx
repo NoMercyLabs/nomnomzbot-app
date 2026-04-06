@@ -61,7 +61,7 @@ export default function DashboardScreen() {
   const broadcasterId = useChannelStore((s) => s.currentChannel?.broadcasterId)
   const { events } = useActivityFeed()
   const { t } = useFeatureTranslation('dashboard')
-  const { isDesktop } = useBreakpoint()
+  const { isDesktop, isPhone } = useBreakpoint()
 
   const { data: stats, isLoading, isError, refetch } = useQuery<DashboardStats>({
     queryKey: ['dashboard', 'stats', broadcasterId],
@@ -88,7 +88,7 @@ export default function DashboardScreen() {
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: '#141125' }}
-      contentContainerStyle={{ paddingBottom: 32 }}
+      contentContainerStyle={{ paddingBottom: isPhone ? 80 : 32 }}
     >
       <PageHeader
         title={currentChannel?.displayName ?? t('title')}
@@ -155,39 +155,44 @@ export default function DashboardScreen() {
           )}
         </View>
 
-        {/* Stat cards */}
+        {/* Stat cards — 2x2 grid on phone, single row on tablet/desktop */}
         {showSkeleton ? (
-          <View className="flex-row flex-wrap gap-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 flex-1 rounded-xl min-w-[130px]" />
-            ))}
+          isPhone ? (
+            <View className="gap-3">
+              <View className="flex-row gap-3">
+                <Skeleton className="h-24 rounded-xl" style={{ flex: 1 }} />
+                <Skeleton className="h-24 rounded-xl" style={{ flex: 1 }} />
+              </View>
+              <View className="flex-row gap-3">
+                <Skeleton className="h-24 rounded-xl" style={{ flex: 1 }} />
+                <Skeleton className="h-24 rounded-xl" style={{ flex: 1 }} />
+              </View>
+            </View>
+          ) : (
+            <View className="flex-row gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-24 rounded-xl" style={{ flex: 1 }} />
+              ))}
+            </View>
+          )
+        ) : isPhone ? (
+          // 2x2 grid: explicit widths so React Native flexWrap actually works
+          <View className="gap-3">
+            <View className="flex-row gap-3">
+              <StatCard icon={<Users size={16} color="#a78bfa" />} label="Viewers" value={formatNumber(stats?.viewerCount ?? 0)} accentColor="#7C3AED" flex />
+              <StatCard icon={<UserPlus size={16} color="#60a5fa" />} label="Followers" value={formatNumber(stats?.followerCount ?? 0)} accentColor="#3b82f6" flex />
+            </View>
+            <View className="flex-row gap-3">
+              <StatCard icon={<Star size={16} color="#4ade80" />} label="Subscribers" value={formatNumber(stats?.subscriberCount ?? 0)} accentColor="#22c55e" flex />
+              <StatCard icon={<Terminal size={16} color="#fbbf24" />} label="Commands" value={formatNumber(stats?.commandsUsed ?? 0)} accentColor="#f59e0b" flex />
+            </View>
           </View>
         ) : (
-          <View className="flex-row flex-wrap gap-4">
-            <StatCard
-              icon={<Users size={16} color="#a78bfa" />}
-              label="Peak Viewers"
-              value={formatNumber(stats?.viewerCount ?? 0)}
-              accentColor="#7C3AED"
-            />
-            <StatCard
-              icon={<UserPlus size={16} color="#60a5fa" />}
-              label="New Followers"
-              value={formatNumber(stats?.followerCount ?? 0)}
-              accentColor="#3b82f6"
-            />
-            <StatCard
-              icon={<Star size={16} color="#4ade80" />}
-              label="Subscribers"
-              value={formatNumber(stats?.subscriberCount ?? 0)}
-              accentColor="#22c55e"
-            />
-            <StatCard
-              icon={<Terminal size={16} color="#fbbf24" />}
-              label="Commands Used"
-              value={formatNumber(stats?.commandsUsed ?? 0)}
-              accentColor="#f59e0b"
-            />
+          <View className="flex-row gap-4">
+            <StatCard icon={<Users size={16} color="#a78bfa" />} label="Peak Viewers" value={formatNumber(stats?.viewerCount ?? 0)} accentColor="#7C3AED" flex />
+            <StatCard icon={<UserPlus size={16} color="#60a5fa" />} label="New Followers" value={formatNumber(stats?.followerCount ?? 0)} accentColor="#3b82f6" flex />
+            <StatCard icon={<Star size={16} color="#4ade80" />} label="Subscribers" value={formatNumber(stats?.subscriberCount ?? 0)} accentColor="#22c55e" flex />
+            <StatCard icon={<Terminal size={16} color="#fbbf24" />} label="Commands Used" value={formatNumber(stats?.commandsUsed ?? 0)} accentColor="#f59e0b" flex />
           </View>
         )}
 
@@ -359,6 +364,7 @@ function StatCard({
   delta,
   deltaPositive,
   accentColor,
+  flex,
 }: {
   icon: React.ReactNode
   label: string
@@ -366,17 +372,18 @@ function StatCard({
   delta?: string
   deltaPositive?: boolean
   accentColor: string
+  flex?: boolean
 }) {
   return (
     <View
-      className="flex-1 rounded-xl px-4 py-4 gap-1.5"
+      className="rounded-xl px-4 py-4 gap-1.5"
       style={{
+        flex: flex ? 1 : undefined,
         backgroundColor: '#1A1530',
         borderWidth: 1,
         borderColor: '#1e1a35',
         borderLeftWidth: 3,
         borderLeftColor: accentColor,
-        minWidth: 130,
       }}
     >
       <View className="flex-row items-center justify-between">
