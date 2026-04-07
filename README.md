@@ -1,5 +1,7 @@
 # NomNomzBot Dashboard
 
+> **This is a submodule of [nomnomzbot](https://github.com/NoMercyLabs/nomnomzbot). Clone the parent repo with `--recursive` for the full platform.**
+
 A universal Twitch bot management app built with Expo and React Native. Manage your chat commands, moderation rules, loyalty points, stream timers, music queue, and more — from web, iOS, Android, or tablet, all from a single codebase.
 
 ## Tech Stack
@@ -42,7 +44,7 @@ git clone https://github.com/NoMercyLabs/nomnomzbot-app.git
 cd nomnomzbot-app
 
 # Install dependencies
-npm install
+yarn install
 
 # Set up environment
 cp .env.example .env
@@ -57,13 +59,13 @@ Press `w` for web, `i` for iOS simulator, `a` for Android emulator, or scan the 
 ## Development Commands
 
 ```bash
-npm start               # Start Expo dev server (all platforms)
-npm run web             # Start targeting web only
-npm run ios             # Start targeting iOS simulator
-npm run android         # Start targeting Android emulator
-npm run lint            # Run ESLint
-npm run typecheck       # Run TypeScript type-check (no emit)
-npm test                # Run Jest test suite
+yarn start              # Start Expo dev server (all platforms)
+yarn web                # Start targeting web only
+yarn ios                # Start targeting iOS simulator
+yarn android            # Start targeting Android emulator
+yarn lint               # Run ESLint
+yarn typecheck          # Run TypeScript type-check (no emit)
+yarn test               # Run Jest test suite
 ```
 
 ## Project Structure
@@ -142,7 +144,7 @@ Copy `.env.example` to `.env` and fill in the values:
 
 ```env
 # Base URL of your NomNomzBot backend (no trailing slash, no /api suffix)
-EXPO_PUBLIC_API_URL=http://localhost:5000
+EXPO_PUBLIC_API_URL=http://localhost:5080
 
 # Your Expo project ID from expo.dev (required for push notifications and EAS)
 EXPO_PUBLIC_PROJECT_ID=your-expo-project-id
@@ -202,9 +204,9 @@ Contributions are welcome. Please follow these steps:
 
 3. Ensure the project builds and passes checks:
    ```bash
-   npm run typecheck
-   npm run lint
-   npm test
+   yarn typecheck
+   yarn lint
+   yarn test
    ```
 
 4. Open a pull request against `master` with a clear description of what changed and why.
