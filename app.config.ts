@@ -10,16 +10,16 @@ function getBundleId(): string {
 }
 
 function getAppName(): string {
-  if (IS_DEV) return 'NomercyBot (Dev)'
-  if (IS_PREVIEW) return 'NomercyBot (Preview)'
-  return 'NomercyBot'
+  if (IS_DEV) return 'NomNomzBot (Dev)'
+  if (IS_PREVIEW) return 'NomNomzBot (Preview)'
+  return 'NomNomzBot'
 }
 
 const config: ExpoConfig = {
   name: getAppName(),
-  slug: 'nomercybot',
+  slug: 'nomnomzbot',
   version: '1.0.0',
-  scheme: 'nomercybot',
+  scheme: 'nomnomzbot',
   orientation: 'default',
   userInterfaceStyle: 'dark',
 

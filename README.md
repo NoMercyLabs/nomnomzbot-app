@@ -1,4 +1,4 @@
-# NomercyBot Dashboard
+# NomNomzBot Dashboard
 
 A universal Twitch bot management app built with Expo and React Native. Manage your chat commands, moderation rules, loyalty points, stream timers, music queue, and more — from web, iOS, Android, or tablet, all from a single codebase.
 
@@ -29,7 +29,7 @@ A universal Twitch bot management app built with Expo and React Native. Manage y
 - [Node.js](https://nodejs.org) 20+
 - [Expo CLI](https://docs.expo.dev/more/expo-cli/): `npm install -g expo-cli`
 - [Expo Go](https://expo.dev/go) app on your device for physical device testing
-- A running [NomercyBot backend](https://github.com/NoMercyLabs/nomercybot) instance
+- A running [NomNomzBot backend](https://github.com/NoMercyLabs/nomnomzbot) instance
 
 For iOS simulator: Xcode 15+
 For Android emulator: Android Studio with an emulator configured
@@ -38,8 +38,8 @@ For Android emulator: Android Studio with an emulator configured
 
 ```bash
 # Clone the repo
-git clone https://github.com/NoMercyLabs/nomercybot-app.git
-cd nomercybot-app
+git clone https://github.com/NoMercyLabs/nomnomzbot-app.git
+cd nomnomzbot-app
 
 # Install dependencies
 npm install
@@ -69,7 +69,7 @@ npm test                # Run Jest test suite
 ## Project Structure
 
 ```
-nomercybot-app/
+nomnomzbot-app/
 ├── app/                        # Expo Router file-based routes
 │   ├── (auth)/                 # Auth screens (login, register)
 │   ├── (dashboard)/            # Main app screens (requires auth)
@@ -141,7 +141,7 @@ nomercybot-app/
 Copy `.env.example` to `.env` and fill in the values:
 
 ```env
-# Base URL of your NomercyBot backend (no trailing slash, no /api suffix)
+# Base URL of your NomNomzBot backend (no trailing slash, no /api suffix)
 EXPO_PUBLIC_API_URL=http://localhost:5000
 
 # Your Expo project ID from expo.dev (required for push notifications and EAS)
